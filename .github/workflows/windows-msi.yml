@@ -45,7 +45,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p test-out
-          ./build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe test-out | tee test-out/test_report_windows.txt
+          EXE=$(find build -name VoxDnaTests.exe | head -1); echo "exe: $EXE"
+          set +e
+          "$EXE" test-out > test-out/test_report_windows.txt 2>&1
+          CODE=$?
+          set -e
+          cat test-out/test_report_windows.txt
+          echo "codigo de salida: $CODE" | tee -a test-out/test_report_windows.txt
+          exit $CODE
 
       - name: pluginval (nivel 10)
         id: pval

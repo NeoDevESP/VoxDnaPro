@@ -331,6 +331,7 @@ static std::vector<float> colorRun (pv::ColorMode mode, float drive, float amp, 
 
 int main (int argc, char** argv)
 {
+    std::setvbuf (stdout, nullptr, _IONBF, 0);   // sin búfer: si algo falla, el informe no se pierde
     juce::ScopedJuceInitialiser_GUI gui;
     const double fs = 48000.0;
     const int block = 256;
