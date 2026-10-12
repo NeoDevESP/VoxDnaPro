@@ -40,12 +40,16 @@ jobs:
         run: cmake --build build --config Release --parallel --target VoxDnaTests
 
       - name: Pruebas DSP/UI
+        id: tests
+        continue-on-error: true
         shell: bash
         run: |
           mkdir -p test-out
           ./build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe test-out | tee test-out/test_report_windows.txt
 
       - name: pluginval (nivel 10)
+        id: pval
+        continue-on-error: true
         shell: bash
         run: |
           curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip
@@ -53,6 +57,25 @@ jobs:
           ./pluginval.exe --strictness-level 10 --validate-in-process --timeout-ms 600000 \
             --output-dir test-out "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" | tee test-out/pluginval_windows.txt
           grep -q "SUCCESS" test-out/pluginval_windows.txt
+
+      - name: Publicar informes en la rama ci-reports
+        if: always()
+        shell: bash
+        run: |
+          rm -rf test-out/frames
+          git config user.name "vox-dna-ci"; git config user.email "ci@users.noreply.github.com"
+          cp -r test-out "$RUNNER_TEMP/rep"
+          git fetch origin ci-reports || true
+          if git rev-parse --verify -q origin/ci-reports; then git checkout -f -B ci-reports origin/ci-reports; else git checkout -f --orphan ci-reports; git rm -rf . -q; fi
+          rm -rf windows && mkdir windows && cp -r "$RUNNER_TEMP/rep/." windows/
+          git add windows && git commit -qm "informes ${GITHUB_SHA::7}" && git push -q origin ci-reports
+          git checkout -f ${GITHUB_SHA}
+
+      - name: Resultado de pruebas y pluginval
+        shell: bash
+        run: |
+          test "${{ steps.tests.outcome }}" = "success" || { echo "Pruebas fallidas"; exit 1; }
+          test "${{ steps.pval.outcome }}" = "success" || { echo "pluginval fallido"; exit 1; }
 
       - name: Preparar archivos para el instalador
         shell: bash
