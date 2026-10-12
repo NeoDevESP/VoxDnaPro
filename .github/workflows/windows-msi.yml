@@ -96,47 +96,46 @@ jobs:
           cp installer/LEEME.txt stage/docs/
           find stage -type f
 
+      - name: Instalar WiX Toolset 5
+        shell: bash
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+
+      - name: Construir .msi (WiX, asistente en español)
+        shell: bash
+        run: |
+          V=${{ steps.ver.outputs.version }}
+          python installer/make_wxs.py stage "$V" VoxDnaPro.wxs
+          wix build -arch x64 -culture es-ES -ext WixToolset.UI.wixext VoxDnaPro.wxs -o "VOX_DNA_PRO_${V}_x64.msi"
+          ls -la *.msi
+
+      - name: Validación ICE del .msi
+        shell: bash
+        run: |
+          V=${{ steps.ver.outputs.version }}
+          set +e
+          wix msi validate "VOX_DNA_PRO_${V}_x64.msi" > ice.txt 2>&1
+          echo "codigo: $?" >> ice.txt
+          cat ice.txt
+
       - uses: actions/upload-artifact@v4
         with:
-          name: stage
-          path: stage
+          name: VOX_DNA_PRO_${{ steps.ver.outputs.version }}_x64_msi
+          path: "*.msi"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: informes-windows
           path: test-out
-    outputs:
-      version: ${{ steps.ver.outputs.version }}
 
-  msi:
-    needs: windows
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: stage
-          path: stage
-      - name: Instalar wixl
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq wixl msitools
-      - name: Generar .msi
-        run: |
-          V=${{ needs.windows.outputs.version }}
-          python3 installer/make_wxs.py stage "$V" VoxDnaPro.wxs
-          wixl -a x64 -o "VOX_DNA_PRO_${V}_x64.msi" VoxDnaPro.wxs
-          msiinfo suminfo "VOX_DNA_PRO_${V}_x64.msi"
-          msiextract -l "VOX_DNA_PRO_${V}_x64.msi"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: VOX_DNA_PRO_${{ needs.windows.outputs.version }}_x64_msi
-          path: "*.msi"
       - name: Publicar en la rama builds
+        shell: bash
         run: |
-          V=${{ needs.windows.outputs.version }}
-          git config user.name  "vox-dna-ci"
-          git config user.email "ci@users.noreply.github.com"
-          mkdir -p /tmp/out && cp *.msi /tmp/out/
+          V=${{ steps.ver.outputs.version }}
+          git config user.name "vox-dna-ci"; git config user.email "ci@users.noreply.github.com"
+          mkdir -p "$RUNNER_TEMP/out" && cp *.msi ice.txt "$RUNNER_TEMP/out/"
           git fetch origin builds || true
-          if git rev-parse --verify -q origin/builds; then git checkout -B builds origin/builds; else git checkout --orphan builds && git rm -rf . -q; fi
-          mkdir -p builds && cp /tmp/out/*.msi builds/
-          git add builds && git commit -m "MSI ${V} (${GITHUB_SHA::7})" && git push origin builds
+          if git rev-parse --verify -q origin/builds; then git checkout -f -B builds origin/builds; else git checkout -f --orphan builds; git rm -rf . -q; fi
+          mkdir -p builds && cp "$RUNNER_TEMP"/out/* builds/
+          git add builds && git commit -qm "MSI ${V} (${GITHUB_SHA::7})" && git push -q origin builds
