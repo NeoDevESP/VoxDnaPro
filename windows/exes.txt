@@ -1,0 +1,32 @@
+build/CMakeFiles/3.31.6/CompilerIdC/CompilerIdC.exe
+build/CMakeFiles/3.31.6/CompilerIdCXX/CompilerIdCXX.exe
+build/Release/juce_vst3_helper.exe
+build/VoxDnaPro_artefacts/Release/Standalone/VOX DNA PRO.exe
+build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe
+build/VoxDnaTests_artefacts:
+JuceLibraryCode
+Release
+
+build/VoxDnaTests_artefacts/JuceLibraryCode:
+Debug
+Info.txt
+MinSizeRel
+RelWithDebInfo
+Release
+VoxDnaTests_resources.rc
+
+build/VoxDnaTests_artefacts/JuceLibraryCode/Debug:
+Defs.txt
+
+build/VoxDnaTests_artefacts/JuceLibraryCode/MinSizeRel:
+Defs.txt
+
+build/VoxDnaTests_artefacts/JuceLibraryCode/RelWithDebInfo:
+Defs.txt
+
+build/VoxDnaTests_artefacts/JuceLibraryCode/Release:
+Defs.txt
+
+build/VoxDnaTests_artefacts/Release:
+VoxDnaTests.exe
+exe: build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe

@@ -1,5 +1,5 @@
 Started validating: D:\a\VoxDnaPro\VoxDnaPro\build\VoxDnaPro_artefacts\Release\VST3\VOX DNA PRO.vst3
-Random seed: 0x1b585d4
+Random seed: 0x677022a
 Validation started
 Strictness level: 10
 -----------------------------------------------------------------
