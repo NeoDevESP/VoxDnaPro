@@ -56,6 +56,18 @@ jobs:
           echo "codigo de salida: $CODE" | tee -a test-out/test_report_windows.txt
           exit $CODE
 
+      - name: Diagnóstico del ejecutable de pruebas
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $exe = "build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe"
+          $vs = & "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath
+          $dumpbin = Get-ChildItem "$vs/VC/Tools/MSVC" -Recurse -Filter dumpbin.exe | Where-Object { $_.FullName -match "Hostx64\\x64" } | Select-Object -First 1
+          & $dumpbin.FullName /dependents $exe | Out-File -Encoding utf8 test-out/diag.txt
+          $p = Start-Process -FilePath $exe -ArgumentList "test-out" -NoNewWindow -Wait -PassThru -RedirectStandardOutput test-out/ps_stdout.txt -RedirectStandardError test-out/ps_stderr.txt
+          ("exit hex: 0x{0:X8}" -f $p.ExitCode) | Out-File -Append -Encoding utf8 test-out/diag.txt
+
       - name: pluginval (nivel 10)
         id: pval
         continue-on-error: true
