@@ -107,7 +107,20 @@ jobs:
         run: |
           V=${{ steps.ver.outputs.version }}
           python installer/make_wxs.py stage "$V" VoxDnaPro.wxs
-          wix build -arch x64 -culture es-ES -ext WixToolset.UI.wixext VoxDnaPro.wxs -o "VOX_DNA_PRO_${V}_x64.msi"
+          set +e
+          wix build -arch x64 -culture es-ES -ext WixToolset.UI.wixext VoxDnaPro.wxs -o "VOX_DNA_PRO_${V}_x64.msi" > wix.txt 2>&1
+          CODE=$?
+          set -e
+          cat wix.txt
+          if [ $CODE -ne 0 ]; then
+            git config user.name "vox-dna-ci"; git config user.email "ci@users.noreply.github.com"
+            cp wix.txt VoxDnaPro.wxs "$RUNNER_TEMP/"
+            git fetch origin ci-reports
+            git checkout -f -B ci-reports origin/ci-reports
+            mkdir -p wix && cp "$RUNNER_TEMP/wix.txt" "$RUNNER_TEMP/VoxDnaPro.wxs" wix/
+            git add wix && git commit -qm "wix log ${GITHUB_SHA::7}" && git push -q origin ci-reports
+            exit $CODE
+          fi
           ls -la *.msi
 
       - name: Validación ICE del .msi
