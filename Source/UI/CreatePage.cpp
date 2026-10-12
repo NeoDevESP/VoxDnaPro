@@ -1150,7 +1150,7 @@ ChainPanel::ChainPanel (UiContext& c)
         if (st < -70.0f) return;
         ctx.setValue ("inGain", juce::jlimit (-24.0f, 24.0f, ctx.value ("inGain") + (-20.0f - st)));
     };
-    monitorButton.setTooltip ("MONITOR: latencia minima para grabar (vuelve a MIX al desactivarlo)");
+    monitorButton.setTooltip ("MONITOR: latencia minima (~7 ms) para grabar. Desactivalo (MIX, ~50 ms) solo para mezclar");
     monitorButton.setClickingTogglesState (true);
     monitorButton.onClick = [this] { ctx.setValue ("quality", monitorButton.getToggleState() ? 0.0f : 1.0f); };
 }
@@ -1362,12 +1362,12 @@ void GlobalPanel::paint (juce::Graphics& g)
     g.strokePath (arc, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
     Path val;
     val.addCentredArc (dial.getCentreX(), dial.getCentreY(), 15.0f, 15.0f, 0.0f, -2.4f, -2.4f + 4.8f * jlimit (0.0f, 1.0f, ms / 60.0f), true);
-    g.setColour (ms < 10.0f ? Pal::lime : Pal::violet);
+    g.setColour (ms < 12.0f ? Pal::lime : ms < 25.0f ? Pal::amber : Pal::red);
     g.strokePath (val, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
     g.setFont (font (12.5f, true));
     g.setColour (Pal::text.withAlpha (0.8f));
     g.drawText ("LATENCY", Rectangle<float> ((float) latencyArea.getX(), 49.0f, (float) latencyArea.getWidth(), 14.0f), Justification::centred);
-    g.setColour (Pal::lilac);
+    g.setColour (ms < 12.0f ? Pal::lilac : ms < 25.0f ? Pal::amber : Pal::red);
     g.drawText (String (ms, 1) + " ms", Rectangle<float> ((float) latencyArea.getX(), 63.0f, (float) latencyArea.getWidth(), 16.0f), Justification::centred);
 }
 

@@ -97,7 +97,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout VoxDnaProcessor::createParam
 
     // ---- STUDIO ----
     // no automatizable: cambiar de modo cambia la latencia (PDC) y no debe ocurrir por automatización
-    ps.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "quality", 1 }, "Quality Mode", qualityNames, 1,
+    // v3.1.1: por defecto MONITOR (~7 ms) para poder cantar con el plugin insertado; MIX añade ~45 ms
+    ps.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID { "quality", 1 }, "Quality Mode", qualityNames, 0,
                                                                 juce::AudioParameterChoiceAttributes().withAutomatable (false)));
     ps.push_back (makeFloat ("dryWet", "Dry/Wet", 0.0f, 100.0f, 100.0f, 0.0f, pctText));
     boolP ("monoCheck", "Mono Check", false);

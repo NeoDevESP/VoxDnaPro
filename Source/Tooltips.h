@@ -8,7 +8,7 @@ namespace pv
 inline juce::String tooltipFor (const juce::String& id)
 {
     static const std::map<juce::String, juce::String> t {
-        { "quality", "MONITOR: latencia minima para grabar (sin formant ni oversampling). MIX: formant + OS 2x. RENDER HQ: OS 4x para exportar." },
+        { "quality", "MONITOR (~7 ms): para GRABAR, sin formant ni oversampling. MIX (~50 ms): formant + OS 2x, solo para mezclar. RENDER HQ: OS 4x para exportar. Si al cantar oyes retraso, pon MONITOR." },
         { "dryWet", "Mezcla global seca/procesada, con la senal seca compensada en latencia." },
         { "monoCheck", "Suma la salida a mono para comprobar cancelaciones de fase." },
         { "mTune", "Macro TUNE: mas a la derecha = retune mas rapido y menos humanize (efecto mas duro)." },

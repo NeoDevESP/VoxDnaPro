@@ -476,6 +476,7 @@ int main (int argc, char** argv)
             VoxDnaProcessor p;
             prepare (p, fs, block);
             allNeutral (p);
+            setParam (p, "quality", 1);   // aplanado de vibrato completo: ventana de MIX
             setParam (p, "tuneOn", 1); setParam (p, "tuneRetune", 0); setParam (p, "tuneHumanize", 0);
             setParam (p, "tuneVibrato", vp); setParam (p, "tuneScale", 0);
             auto out = run (p, vocalLike (fs, (int) fs * 3, 220.0f, 45.0f), block);
@@ -516,6 +517,7 @@ int main (int argc, char** argv)
             VoxDnaProcessor p;
             prepare (p, fs, block);
             allNeutral (p);
+            setParam (p, "quality", 1);   // el formant solo actúa en MIX / RENDER HQ
             setParam (p, "formant", st);
             auto out = run (p, vocalLike (fs, (int) fs * 2, 150.0f, 0.0f), block);
             const float f0 = measurePitch (out, fs, (int) fs, 4096);
@@ -619,10 +621,11 @@ int main (int argc, char** argv)
         for (int i = 0; i < a.getParameters().size(); ++i)
         {
             auto* rp = dynamic_cast<juce::RangedAudioParameter*> (a.getParameters()[i]);
-            if (rp->getParameterID() == "tuneKey" || rp->getParameterID() == "tuneScale") continue;
+            // los presets no cambian tonalidad, escala ni modo de calidad (latencia) por diseño
+            if (rp->getParameterID() == "tuneKey" || rp->getParameterID() == "tuneScale" || rp->getParameterID() == "quality") continue;
             if (rp->getCurrentValueAsText() != c.getParameters()[i]->getCurrentValueAsText()) ++diff2;
         }
-        check (diff2 == 0, "Preset JSON recall (sin key/scale)", "diferencias: " + juce::String (diff2));
+        check (diff2 == 0, "Preset JSON recall (sin key/scale/calidad)", "diferencias: " + juce::String (diff2));
 
         // parámetro desconocido + ausente: no debe destruir el resto
         auto obj = juce::JSON::parse (file);
