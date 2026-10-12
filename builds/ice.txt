@@ -1,0 +1,6 @@
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(62) : error WIX0204: ICE38: Component C_Shortcut installs to user profile. It's KeyPath registry key must fall under HKCU.
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(62) : error WIX0204: ICE43: Component C_Shortcut has non-advertised shortcuts. It's KeyPath registry key should fall under HKCU.
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(59) : error WIX0204: ICE57: Component 'C_Shortcut' has both per-user and per-machine data with a per-machine KeyPath.
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(8) : warning WIX1076: ICE61: This product should remove only older versions of itself. The Maximum version is not less than the current product. (3.1.1 3.1.1)
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(60) : warning WIX1076: ICE90: The shortcut 'S_App' has a directory that is a public property (ALL CAPS) and is under user profile directory. This results in a problem if the value of the ALLUSERS property changes in the UI sequence.
+codigo: 204
