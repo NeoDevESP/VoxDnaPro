@@ -1,0 +1,19 @@
+VOX DNA PRO
+===========
+
+Qué instala
+  - Plugin VST3:   C:\Program Files\Common Files\VST3\VOX DNA PRO.vst3
+  - Standalone:    C:\Program Files\VOX DNA\VOX DNA PRO\VOX DNA PRO.exe
+                   (acceso en el menú Inicio)
+
+FL Studio
+  1. Abre FL Studio > Options > Manage plugins > Find more plugins (o "Find installed plugins").
+  2. Busca "VOX DNA PRO" en la lista, márcalo como favorito y arrástralo a un slot del Mixer.
+
+Tus presets, referencias e imágenes se guardan en Documentos\VOX DNA PRO
+y NO se borran al desinstalar ni al actualizar.
+
+Actualizar: ejecuta el .msi nuevo; sustituye la versión anterior automáticamente.
+Desinstalar: Configuración de Windows > Aplicaciones > VOX DNA PRO > Desinstalar.
+
+Fuentes tipográficas: SIL Open Font License (ver archivos OFL-*.txt).

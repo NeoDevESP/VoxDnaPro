@@ -1,0 +1,44 @@
+== ThreadSanitizer v3.1: 0 avisos ==
+race run done: 157 ciclos de UI (audio en hilo real + editor animado a 60 fps + las 5 vistas + presets + estado + secuenciador + orden de insertos)
+
+== Control v2.0 (carrera del analizador) ==
+WARNING: ThreadSanitizer: data race (pid=2498)
+  Write of size 4 at 0x7fff3e7f0a58 by thread T2:
+    #0 VoxDnaProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) VoxDnaPro/Source/PluginProcessor.cpp:684 (VoxDnaTests+0x10cab1) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #1 operator() VoxDnaPro/Tests/RaceMain.cpp:22 (VoxDnaTests+0xf731f) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #2 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (VoxDnaTests+0xf7511) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #3 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (VoxDnaTests+0xf7511)
+    #4 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (VoxDnaTests+0xf7511)
+    #5 operator() /usr/include/c++/13/bits/std_thread.h:299 (VoxDnaTests+0xf7511)
+    #6 _M_run /usr/include/c++/13/bits/std_thread.h:244 (VoxDnaTests+0xf7511)
+    #7 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Previous read of size 4 at 0x7fff3e7f0a58 by main thread:
+    #0 Analyzer::update() VoxDnaPro/Source/PluginEditor.cpp:260 (VoxDnaTests+0x138f87) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #1 VoxDnaEditor::timerCallback() VoxDnaPro/Source/PluginEditor.cpp:984 (VoxDnaTests+0x13a39b) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #2 juce::Timer::TimerThread::callTimers() /home/claude/deps/JUCE/modules/juce_events/timers/juce_Timer.cpp:170 (VoxDnaTests+0x7b6b4c) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #3 juce::Timer::TimerThread::CallTimersMessage::messageCallback() /home/claude/deps/JUCE/modules/juce_events/timers/juce_Timer.cpp:271 (VoxDnaTests+0x7b6d19) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #4 juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}::operator()(int) const /home/claude/deps/JUCE/modules/juce_events/native/juce_Messaging_linux.cpp:54 (VoxDnaTests+0x7b7255) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #5 void std::__invoke_impl<void, juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}&, int>(std::__invoke_other, juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}&, int&&) /usr/include/c++/13/bits/invoke.h:61 (VoxDnaTests+0x7b73fb) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #6 std::enable_if<is_invocable_r_v<void, juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}&, int>, void>::type std::__invoke_r<void, juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}&, int>(juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}&, int&&) /usr/include/c++/13/bits/invoke.h:111 (VoxDnaTests+0x7b73fb)
+    #7 std::_Function_handler<void (int), juce::InternalMessageQueue::InternalMessageQueue()::{lambda(int)#1}>::_M_invoke(std::_Any_data const&, int&&) /usr/include/c++/13/bits/std_function.h:290 (VoxDnaTests+0x7b73fb)
+    #8 std::function<void (int)>::operator()(int) const /usr/include/c++/13/bits/std_function.h:591 (VoxDnaTests+0x79e145) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #9 operator() /home/claude/deps/JUCE/modules/juce_events/native/juce_Messaging_linux.cpp:368 (VoxDnaTests+0x79e145)
+    #10 __invoke_impl<void, juce::LinuxEventLoop::registerFdCallback(int, std::function<void(int)>, short int)::<lambda()>&> /usr/include/c++/13/bits/invoke.h:61 (VoxDnaTests+0x79e145)
+    #11 __invoke_r<void, juce::LinuxEventLoop::registerFdCallback(int, std::function<void(int)>, short int)::<lambda()>&> /usr/include/c++/13/bits/invoke.h:111 (VoxDnaTests+0x79e145)
+    #12 _M_invoke /usr/include/c++/13/bits/std_function.h:290 (VoxDnaTests+0x79e145)
+    #13 std::function<void ()>::operator()() const /usr/include/c++/13/bits/std_function.h:591 (VoxDnaTests+0x7afc4f) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #14 juce::InternalRunLoop::dispatchPendingEvents() /home/claude/deps/JUCE/modules/juce_events/native/juce_Messaging_linux.cpp:190 (VoxDnaTests+0x7afc4f)
+    #15 juce::detail::dispatchNextMessageOnSystemQueue(bool) /home/claude/deps/JUCE/modules/juce_events/native/juce_Messaging_linux.cpp:350 (VoxDnaTests+0x7afc4f)
+    #16 juce::MessageManager::runDispatchLoopUntil(int) /home/claude/deps/JUCE/modules/juce_events/messages/juce_MessageManager.cpp:148 (VoxDnaTests+0x7afe83) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #17 main VoxDnaPro/Tests/RaceMain.cpp:29 (VoxDnaTests+0xeff30) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:397 (libtsan.so.2+0x58cc6) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 void std::this_thread::sleep_for<long, std::ratio<1l, 1000000l> >(std::chrono::duration<long, std::ratio<1l, 1000000l> > const&) /usr/include/c++/13/bits/this_thread_sleep.h:80 (VoxDnaTests+0xf735b) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #2 operator() VoxDnaPro/Tests/RaceMain.cpp:23 (VoxDnaTests+0xf735b)
+    #3 __invoke_impl<void, main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (VoxDnaTests+0xf7511) (BuildId: 85faf0dd56503f9af9b19bffaff3c0a112ddf7b3)
+    #4 __invoke<main()::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (VoxDnaTests+0xf7511)
+    #5 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (VoxDnaTests+0xf7511)
+    #6 operator() /usr/include/c++/13/bits/std_thread.h:299 (VoxDnaTests+0xf7511)
+    #7 _M_run /usr/include/c++/13/bits/std_thread.h:244 (VoxDnaTests+0xf7511)

@@ -1,0 +1,114 @@
+name: Build & validate VOX DNA PRO
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+            libfreetype-dev libfontconfig1-dev libgl1-mesa-dev xvfb
+
+      - name: Configure (plugin + tests)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DVD_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      # ------------------------------------------------------------------
+      # Tests offline: tiempo real (0 asignaciones con el compilador de la
+      # plataforma, incl. MSVC), true peak, EBU 3341, latencia, recall...
+      # ------------------------------------------------------------------
+      - name: Offline tests (Windows)
+        if: runner.os == 'Windows'
+        run: build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe
+
+      - name: Offline tests (macOS)
+        if: runner.os == 'macOS'
+        run: ./build/VoxDnaTests_artefacts/Release/VoxDnaTests
+
+      - name: Offline tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./build/VoxDnaTests_artefacts/Release/VoxDnaTests
+
+      # ------------------------------------------------------------------
+      # pluginval, nivel de exigencia 10
+      # ------------------------------------------------------------------
+      - name: pluginval (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Windows.zip -OutFile pluginval.zip
+          Expand-Archive pluginval.zip -DestinationPath pv
+          ./pv/pluginval.exe --strictness-level 10 --validate-in-process --timeout-ms 900000 --validate "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: pluginval (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          unzip -q pluginval.zip
+          pluginval.app/Contents/MacOS/pluginval --strictness-level 10 --validate-in-process --timeout-ms 900000 \
+            --validate "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3"
+
+      - name: auval (macOS, AU)
+        if: runner.os == 'macOS'
+        continue-on-error: true   # el registro de AU en runners efímeros a veces falla por motivos ajenos al plugin
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R "build/VoxDnaPro_artefacts/Release/AU/VOX DNA PRO.component" ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar || true
+          sleep 5
+          auval -v aufx VDna VxDn
+
+      - name: pluginval (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip
+          unzip -q pluginval.zip
+          xvfb-run -a ./pluginval --strictness-level 10 --validate-in-process --timeout-ms 900000 \
+            --validate "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3"
+
+      # ------------------------------------------------------------------
+      - name: Collect (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" "dist/VOX DNA PRO.vst3"
+          Copy-Item "build/VoxDnaPro_artefacts/Release/Standalone/VOX DNA PRO.exe" "dist/VOX DNA PRO (Standalone).exe"
+          Copy-Item README.md, CHANGELOG.md dist/
+
+      - name: Collect (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p dist
+          cp -R "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" dist/
+          cp -R "build/VoxDnaPro_artefacts/Release/AU/VOX DNA PRO.component" dist/
+          cp -R "build/VoxDnaPro_artefacts/Release/Standalone/VOX DNA PRO.app" dist/
+          cp README.md CHANGELOG.md dist/
+
+      - name: Collect (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p dist
+          cp -R "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" dist/
+          cp README.md CHANGELOG.md dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VOX-DNA-PRO-2.1-${{ runner.os }}
+          path: dist/

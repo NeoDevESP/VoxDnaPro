@@ -1,0 +1,7 @@
+build/
+build-*/
+JUCE/
+*.user
+.DS_Store
+stage/
+*.msi

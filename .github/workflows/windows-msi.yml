@@ -1,0 +1,110 @@
+# VOX DNA PRO — compila en Windows (MSVC) y genera el instalador .msi
+#  1) windows: compila VST3 + Standalone, pasa las pruebas y pluginval (nivel 10)
+#  2) msi:     genera el .msi con installer/make_wxs.py + wixl y lo publica
+#              como artefacto y en la rama "builds" (builds/VOX_DNA_PRO_<versión>_x64.msi)
+name: Windows MSI
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versión
+        id: ver
+        shell: bash
+        run: echo "version=$(grep -oP 'project\(VOX_DNA_PRO VERSION \K[0-9.]+' CMakeLists.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: juce-8.0.4-msvc
+
+      - name: Configurar (VS 2022 x64)
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DVD_BUILD_TESTS=ON
+
+      - name: Compilar plugin
+        run: cmake --build build --config Release --parallel --target VoxDnaPro_VST3 VoxDnaPro_Standalone
+
+      - name: Compilar pruebas
+        run: cmake --build build --config Release --parallel --target VoxDnaTests
+
+      - name: Pruebas DSP/UI
+        shell: bash
+        run: |
+          mkdir -p test-out
+          ./build/VoxDnaTests_artefacts/Release/VoxDnaTests.exe test-out | tee test-out/test_report_windows.txt
+
+      - name: pluginval (nivel 10)
+        shell: bash
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip
+          7z x -y pluginval.zip > /dev/null
+          ./pluginval.exe --strictness-level 10 --validate-in-process --timeout-ms 600000 \
+            --output-dir test-out "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" | tee test-out/pluginval_windows.txt
+          grep -q "SUCCESS" test-out/pluginval_windows.txt
+
+      - name: Preparar archivos para el instalador
+        shell: bash
+        run: |
+          mkdir -p stage/vst3 stage/app stage/docs
+          cp -r "build/VoxDnaPro_artefacts/Release/VST3/VOX DNA PRO.vst3" stage/vst3/
+          cp "build/VoxDnaPro_artefacts/Release/Standalone/VOX DNA PRO.exe" stage/app/
+          cp Resources/Fonts/OFL-*.txt stage/docs/
+          cp installer/LEEME.txt stage/docs/
+          find stage -type f
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage
+          path: stage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informes-windows
+          path: test-out
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+
+  msi:
+    needs: windows
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: stage
+          path: stage
+      - name: Instalar wixl
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq wixl msitools
+      - name: Generar .msi
+        run: |
+          V=${{ needs.windows.outputs.version }}
+          python3 installer/make_wxs.py stage "$V" VoxDnaPro.wxs
+          wixl -a x64 -o "VOX_DNA_PRO_${V}_x64.msi" VoxDnaPro.wxs
+          msiinfo suminfo "VOX_DNA_PRO_${V}_x64.msi"
+          msiextract -l "VOX_DNA_PRO_${V}_x64.msi"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VOX_DNA_PRO_${{ needs.windows.outputs.version }}_x64_msi
+          path: "*.msi"
+      - name: Publicar en la rama builds
+        run: |
+          V=${{ needs.windows.outputs.version }}
+          git config user.name  "vox-dna-ci"
+          git config user.email "ci@users.noreply.github.com"
+          mkdir -p /tmp/out && cp *.msi /tmp/out/
+          git fetch origin builds || true
+          if git rev-parse --verify -q origin/builds; then git checkout -B builds origin/builds; else git checkout --orphan builds && git rm -rf . -q; fi
+          mkdir -p builds && cp /tmp/out/*.msi builds/
+          git add builds && git commit -m "MSI ${V} (${GITHUB_SHA::7})" && git push origin builds
