@@ -1,0 +1,194 @@
+
+== TIEMPO REAL: asignaciones de memoria dentro de processBlock ==
+  [ OK ] Cero asignaciones en modo MONITOR 181 bloques (1-2048 muestras, max anunciado 512) + automatizacion: 0 asignaciones
+  [ OK ] Cero asignaciones en modo MIX 159 bloques (1-2048 muestras, max anunciado 512) + automatizacion: 0 asignaciones
+  [ OK ] Cero asignaciones en modo RENDER HQ 142 bloques (1-2048 muestras, max anunciado 512) + automatizacion: 0 asignaciones
+
+== PRESETS (estabilidad, techo -1 dBFS) ==
+  [ OK ] Todos los presets estables 41/41
+
+== DNA TUNE (precision) ==
+  [ OK ] A3 +35c chromatic, retune 0 219.95 Hz, err -0.4 c
+  [ OK ] A3 -40c chromatic, retune 0 220.03 Hz, err 0.2 c
+  [ OK ] D3 +30c D minor, retune 20 146.79 Hz, err -0.4 c
+  [ OK ] G4 -25c G major, retune 10 391.75 Hz, err -1.1 c
+  [ OK ] Vibrato aplanado con Protect 0 14.9 c
+  [ OK ] Vibrato conservado con Protect 100 45.6 c
+
+== FORMANT SHIFT ==
+  [ OK ] F0 intacta con formant 0 st 150.0 Hz
+  [ OK ] F0 intacta con formant 3 st 150.0 Hz
+  [ OK ] Formantes suben con +3 st centroide 1467 -> 1786 Hz
+  [ OK ] F0 intacta con formant -3 st 150.0 Hz
+  [ OK ] Formantes bajan con -3 st centroide 1467 -> 1231 Hz
+
+== LATENCIA / PDC (impulso) ==
+  [ OK ] Modo MONITOR dry/wet 100% medida 331 / reportada 331 smp, picos>0.1: 1
+  [ OK ] Modo MONITOR dry/wet 50% medida 331 / reportada 331 smp, picos>0.1: 1
+  [ OK ] Modo MIX dry/wet 100% medida 2580 / reportada 2580 smp, picos>0.1: 1
+  [ OK ] Modo MIX dry/wet 50% medida 2580 / reportada 2580 smp, picos>0.1: 1
+  [ OK ] Modo RENDER HQ dry/wet 100% medida 2592 / reportada 2592 smp, picos>0.1: 3
+  [ OK ] Modo RENDER HQ dry/wet 50% medida 2592 / reportada 2592 smp, picos>0.1: 2
+
+== SAMPLE RATES x BLOQUES VARIABLES (preset RAGE EDGE + 8 capas) ==
+  [ OK ] 44.1 kHz peak 0.872
+  [ OK ] 48.0 kHz peak 0.874
+  [ OK ] 88.2 kHz peak 0.876
+  [ OK ] 96.0 kHz peak 0.865
+
+== PRESET RECALL / JSON ==
+  [ OK ] Sesion guardar/reabrir exacta 152 parametros, diferencias: 0
+  [ OK ] Guardar preset JSON (.vdna schema 3) 
+  [ OK ] Esquema JSON versionado 
+  [ OK ] Preset JSON recall (sin key/scale) diferencias: 0
+  [ OK ] Preset con parametro desconocido/ausente se carga 
+
+== MONO / FASE ==
+  [ OK ] Layout mono -> mono aceptado 
+  [ OK ] Proceso mono estable 
+  [ OK ] Correlacion estereo mono-compatible 0.92
+
+== CLICKS AL CAMBIAR PRESETS / MODULOS ==
+  [ OK ] Sin discontinuidades al cambiar presets/modulos paso max 0.0245 (base 0.0086) tras: preset RAGE EDGE (+1747 smp)
+
+== ALIASING (Rage Clip, seno 3.5 kHz, energia 400-3000 Hz) ==
+  MONITOR 26.6 dB  MIX -3.4 dB  RENDER HQ -11.8 dB
+  [ OK ] Oversampling reduce el aliasing 
+
+== DNA TUNE v2.2 (voz, octavas, consonantes, transiciones, flex, formantes) ==
+  [ OK ] Consonante (ruido) intacta entre vocales con hard-tune correlacion con la entrada 0.996
+  [ OK ] Sin errores de octava con fundamental debil 0 de 505 bloques fuera de octava
+  [ OK ] Flex 0: desviacion de +45 c corregida salida a 0.0 c de A3
+  [ OK ] Flex 100: +45 c se respeta (expresion) salida a 45.0 c de A3
+  [ OK ] Flex 100: +4 c si se corrige salida a 0.0 c de A3
+  [ OK ] Transition 0 ms: salto inmediato a C4 0 c de C4 a los 45 ms
+  [ OK ] Transition 150 ms: deslizamiento y llegada 181 c a los 60 ms, 0.5 c a los 350 ms
+  [ OK ] Formant Preserve mantiene el timbre al corregir 1 st centroide sin preserve 4.8 %, con preserve 2.1 %
+  [ OK ] MONITOR afina una voz grave (G2 +30 c) error 0.0 c, latencia 6.90 ms
+
+== TRUE PEAK (limitador -1 dBTP, auditado con sobremuestreo 16x) ==
+  [ OK ] Seno fs/4 a 45 grados (+3 dB entre muestras), +6 dBFS true peak -1.15 dBTP
+  [ OK ] Seno 18 kHz +6 dBFS true peak -1.15 dBTP
+  [ OK ] Onda cuadrada 997 Hz +6 dBFS true peak -1.10 dBTP
+  [ OK ] Ruido banda completa hasta 19 kHz (Butterworth 8o), +10 dBFS true peak -1.11 dBTP
+  [INFO] Ruido blanco hasta Nyquist (limite documentado): -0.50 dBTP
+
+== SONORIDAD BS.1770-4 (senales EBU Tech 3341) ==
+  [ OK ] Caso 1: seno 1 kHz -23 dBFS, 20 s (48 kHz) I -22.99  M -22.99  S -22.99 LUFS
+  [ OK ] Caso 1: seno 1 kHz -23 dBFS, 20 s (44.1 kHz) I -22.99  M -22.99  S -22.99 LUFS
+  [ OK ] Caso 1: seno 1 kHz -23 dBFS, 20 s (96 kHz) I -23.01  M -23.01  S -23.01 LUFS
+  [ OK ] Caso 2: seno 1 kHz -33 dBFS, 20 s I -32.99  M -32.99  S -32.99 LUFS
+  [ OK ] Caso 3: -36/-23/-36 dBFS (10/60/10 s) I -23.01  M -35.99  S -35.99 LUFS
+  [ OK ] Caso 4: -72/-36/-23/-36/-72 (gate abs.) I -23.01  M -71.99  S -71.99 LUFS
+  [ OK ] Caso 5: -26/-20/-26 dBFS (20/20.1/20 s) I -22.98  M -25.99  S -25.99 LUFS
+
+== LATENCIA AUDIBLE REAL con DNA TUNE corrigiendo (envolvente) ==
+  [ OK ] MONITOR   @ 44.1 kHz reportada 6.92 ms | tune ON: ataques 0.05 ms, deriva media en notas sostenidas 3.85 ms (limite +-5.5)
+  [ OK ] MIX       @ 44.1 kHz reportada 55.76 ms | tune ON: ataques 0.03 ms, deriva media en notas sostenidas -0.92 ms (limite +-30.0)
+  [ OK ] RENDER HQ @ 44.1 kHz reportada 56.03 ms | tune ON: ataques 0.03 ms, deriva media en notas sostenidas -0.92 ms (limite +-30.0)
+  [ OK ] MONITOR   @ 48.0 kHz reportada 6.90 ms | tune ON: ataques 0.05 ms, deriva media en notas sostenidas 3.88 ms (limite +-5.5)
+  [ OK ] MIX       @ 48.0 kHz reportada 53.75 ms | tune ON: ataques 0.07 ms, deriva media en notas sostenidas -0.82 ms (limite +-30.0)
+  [ OK ] RENDER HQ @ 48.0 kHz reportada 54.00 ms | tune ON: ataques 0.07 ms, deriva media en notas sostenidas -0.82 ms (limite +-30.0)
+  [ OK ] MONITOR   @ 96.0 kHz reportada 6.70 ms | tune ON: ataques 0.05 ms, deriva media en notas sostenidas 3.96 ms (limite +-5.5)
+  [ OK ] MIX       @ 96.0 kHz reportada 42.38 ms | tune ON: ataques 0.04 ms, deriva media en notas sostenidas -0.74 ms (limite +-30.0)
+  [ OK ] RENDER HQ @ 96.0 kHz reportada 42.50 ms | tune ON: ataques 0.04 ms, deriva media en notas sostenidas -0.74 ms (limite +-30.0)
+
+== CAMBIO DE MODO DE CALIDAD DURANTE LA REPRODUCCION ==
+  [ OK ] Sin clicks ni NaN en 7 cambios de modo paso max 0.0479
+  [ OK ] Hueco de silencio acotado por cambio 54.9 ms max
+  [ OK ] Latencia reportada al host actualizada 331 smp en modo final MONITOR
+  [ OK ] Cambios de modo sin asignaciones en audio 0
+
+== RESTAURACION DE ESTADO CON VALORES INTERMEDIOS (caso pluginval) ==
+  [ OK ] Todos los parametros restaurados (bools/choices incluidos) 0 fallos 
+
+== DNA ANALOG v2.3: MODELOS DE CIRCUITO ==
+  [ OK ] Ganancia de pequena senal 0 dB: Tube (12AX7) -0.00 dB
+  [ OK ] Ganancia de pequena senal 0 dB: Tape (J-A) -0.03 dB
+  [ OK ] Ganancia de pequena senal 0 dB: Preamp A (WDF) -0.01 dB
+  [ OK ] Ganancia de pequena senal 0 dB: Console (WDF) 0.26 dB
+  [ OK ] Tube: 2.o armonico > 3.o (triodo asimetrico) H2 -21.2 dBc, H3 -40.1 dBc
+  [ OK ] Preamp A: armonicos pares presentes (diodos asimetricos) H2/H3 1.42
+  [ OK ] Tape: 3.o armonico > 2.o (histeresis simetrica) H3 -23.7 dBc, H2 -208.4 dBc
+  [ OK ] Console: THD < 0.3 % a -18 dBFS (color sutil) 0.243 %
+  [ OK ] THD crece con el drive: Tube (12AX7) 0.87% 3.25% 13.20% 
+  [ OK ] THD crece con el drive: Tape (J-A) 1.29% 3.45% 7.42% 
+  [ OK ] THD crece con el drive: Preamp A (WDF) 0.12% 0.35% 6.18% 
+  [ OK ] THD crece con el drive: Console (WDF) 0.25% 0.60% 1.56% 
+  [ OK ] Tape: lazo de histeresis (remanencia con H = 0) M(H=0, subiendo) -0.142 Ms, bajando 0.142 Ms
+  [ OK ] Tube a drive 90 % sin aliasing audible (HQ, 7.9 kHz) peor alias -105.6 dBc
+
+== DNA ANALOG v2.3: COMPRESORES FET / VCA / OPTO ==
+  [ OK ] FET mas rapido que el opto (63 % de la GR final) FET 0.71 ms, opto 7.8 ms
+  [ OK ] VCA: curva estatica (-8 dB, umbral -20, 4:1 -> 9 dB GR) 9.00 dB
+  [ OK ] FET realimentado: misma curva estatica 9.00 dB
+  [ OK ] FET: release dependiente del programa hasta 1 dB de GR: rafaga 50 ms -> 23 ms, rafaga 3 s -> 46 ms
+  [ OK ] Opto T4: memoria de la celula (release mas lento tras compresion larga) hasta 0.5 dB: rafaga 100 ms -> 1704 ms, rafaga 5 s -> 6057 ms
+  [ OK ] FET: 2.o armonico crece con la reduccion (VCA limpio) sin GR -170 dBc, con ~18 dB GR -31.6 dBc, VCA -170 dBc
+
+== v3.0 STUDIO: CAPAS, ARMONIZADOR Y RUTEO POR CAPA ==
+  [ OK ] 3rd Up en La menor: A3 -> C4 (+3 st) 261.5 Hz (2.99 st)
+  [ OK ] 5th Up en La menor: A3 -> E4 (+7 st) 329.3 Hz (6.98 st)
+  [ OK ] 3rd Down en La menor: A3 -> F3 (-4 st) 174.8 Hz (-3.98 st)
+  [ OK ] 3rd Up en La mayor: A3 -> C#4 (+4 st) 276.9 Hz (3.98 st)
+  [ OK ] 6th Up en Do mayor: A3 -> F4 (+8 st) 348.4 Hz (7.96 st)
+  [ OK ] OCTAVE -1: 220 Hz -> 110 Hz 109.1 Hz
+  [ OK ] OCTAVE +1: 220 Hz -> 440 Hz 435.8 Hz
+  [ OK ] HPF por capa (LEAD a 1 kHz): 100 Hz atenuado 40.0 dB
+  [ OK ] Envio de reverb por capa (100 % vs 0 %) cola -41.8 dB vs -200.0 dB
+
+== v3.0 STUDIO: MODOS DE RUTEO DE EFECTOS ==
+  [ OK ] SERIES: los ecos del delay se reverberan cola tras el eco -127.0 -> -62.8 dB
+  [ OK ] MID/SIDE: el centro de los retornos baja (la voz manda en el centro) 10.5 dB menos en el centro
+  [ OK ] SPLIT: graves (150 Hz) fuera de la reverb 10.5 dB menos de cola grave
+
+== v3.0 STUDIO: SECUENCIADOR, TONE TILT, TECHO, LINK ==
+  [ OK ] GATE secuenciado a 1/16 (125 ms por paso) 186.5 dB entre paso abierto y cerrado
+  [ OK ] THROW secuenciado: ecos en los pasos activos (delay apagado) -200.0 -> -24.7 dB tras la frase
+  [ OK ] TONE TILT +6 dB (100 Hz vs 10 kHz) 100 Hz -2.9 dB, 10 kHz +3.0 dB
+  [ OK ] OUTPUT / LIMIT: techo de -3 dBTP respetado (voz +18 dB) -3.15 dBTP
+  [ OK ] IN/OUT LINK: trim de entrada compensado en el master sin link +6.0 dB, con link -0.00 dB
+  [ OK ] Orden de la cadena (6 permutaciones) cambiado en reproduccion paso max 0.129
+  [ OK ] Orden de insercion aplicado (RAGE EDGE: EQ>COMP>COLOR vs COLOR>COMP>EQ) diferencia -21.7 dB respecto a la senal
+
+== v3.0 STUDIO: MIGRACION DE SESIONES Y PRESETS v2.x ==
+  [ OK ] Sesion v2.x: ADLIBS y LOW se trasladan a las capas v3 (ADLIBS, OCTAVE -1) OK
+  [ OK ] Preset .vdna schema 2: HIGH -> OCTAVE +1, ATMOS -> TEXTURE OK
+
+== LOUDNESS RANGE (EBU Tech 3342) ==
+  [ OK ] Caso 1: LRA esperado 10 LU 10.00 LU
+  [ OK ] Caso 2: LRA esperado 5 LU 5.00 LU
+  [ OK ] Caso 3: LRA esperado 20 LU 20.00 LU
+  [ OK ] Caso 4: LRA esperado 15 LU 15.00 LU
+
+== v3.0 ANALYZE: PERFILES, MATCH Y SUGERENCIAS DE EQ ==
+  [ OK ] Match de una voz consigo misma 100.0 %
+  [ OK ] Referencia con +6 dB en agudos -> sugiere subir AIR (y no tocar BODY) AIR 4.0 dB, BODY -0.0 dB, match 90 %
+  [ OK ] Anchura: mono = 0 %, L/R desequilibrado > 10 % 0.0 % vs 20.0 %
+  [ OK ] VIBE: mas agudos -> mas BRIGHTNESS y AIR brillo 0.30 -> 0.33, aire 0.69 -> 0.85
+  [ OK ] Analisis de archivo (seno 1 kHz -23 dBFS): LUFS y true peak -22.99 LUFS, TP -23.00 dBTP
+
+== RENDIMIENTO (64 muestras @ 48 kHz = 1.33 ms por bloque) ==
+   1 instancia(s) MIX               : 7.1 % de tiempo real (un nucleo de este servidor)
+   4 instancia(s) MIX               : 28.6 % de tiempo real (un nucleo de este servidor)
+   8 instancia(s) MIX               : 57.4 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX               : 115.5 % de tiempo real (un nucleo de este servidor)
+   1 instancia(s) MIX + Formant Keep: 9.0 % de tiempo real (un nucleo de este servidor)
+   4 instancia(s) MIX + Formant Keep: 36.4 % de tiempo real (un nucleo de este servidor)
+   8 instancia(s) MIX + Formant Keep: 73.1 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX + Formant Keep: 147.8 % de tiempo real (un nucleo de este servidor)
+
+== CAPTURAS UI ==
+  -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_0.png
+  -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_1.png
+  -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_2.png
+  -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_3.png
+  -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_4.png
+
+== v3.1 MOTION: COSTE DE LA INTERFAZ Y VIDEO DE MUESTRA ==
+  [FAIL] Animaciones completas: coste de pintado por frame (CPU, sin GPU, escala 100 %) regiones animadas 14.48 ms/frame (ventana completa 46.3 ms)
+  [FAIL] Animaciones suaves: coste de pintado por frame (CPU, sin GPU, escala 100 %) regiones animadas 14.29 ms/frame (ventana completa 45.8 ms)
+  [FAIL] Animaciones desactivadas: coste de pintado por frame (CPU, sin GPU, escala 100 %) regiones animadas 13.33 ms/frame (ventana completa 43.6 ms)
+  -> 240 frames en D:\a\VoxDnaPro\VoxDnaPro\test-out\frames
+
+HAY FALLOS (3 fallos)

@@ -40,4 +40,4 @@ File Type: EXECUTABLE IMAGE
         1000 .rsrc
       59D000 .text
         1000 _RDATA
-exit hex: 0xC00000FD
+exit hex: 0x00000001
