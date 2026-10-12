@@ -169,14 +169,14 @@
   [ OK ] Analisis de archivo (seno 1 kHz -23 dBFS): LUFS y true peak -22.99 LUFS, TP -23.00 dBTP
 
 == RENDIMIENTO (64 muestras @ 48 kHz = 1.33 ms por bloque) ==
-   1 instancia(s) MIX               : 6.2 % de tiempo real (un nucleo de este servidor)
-   4 instancia(s) MIX               : 24.6 % de tiempo real (un nucleo de este servidor)
+   1 instancia(s) MIX               : 6.1 % de tiempo real (un nucleo de este servidor)
+   4 instancia(s) MIX               : 24.7 % de tiempo real (un nucleo de este servidor)
    8 instancia(s) MIX               : 49.4 % de tiempo real (un nucleo de este servidor)
-  16 instancia(s) MIX               : 100.3 % de tiempo real (un nucleo de este servidor)
-   1 instancia(s) MIX + Formant Keep: 6.3 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX               : 99.6 % de tiempo real (un nucleo de este servidor)
+   1 instancia(s) MIX + Formant Keep: 6.1 % de tiempo real (un nucleo de este servidor)
    4 instancia(s) MIX + Formant Keep: 24.6 % de tiempo real (un nucleo de este servidor)
-   8 instancia(s) MIX + Formant Keep: 49.8 % de tiempo real (un nucleo de este servidor)
-  16 instancia(s) MIX + Formant Keep: 100.1 % de tiempo real (un nucleo de este servidor)
+   8 instancia(s) MIX + Formant Keep: 49.3 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX + Formant Keep: 99.6 % de tiempo real (un nucleo de este servidor)
 
 == CAPTURAS UI ==
   -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_0.png
@@ -186,9 +186,9 @@
   -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_4.png
 
 == v3.1 MOTION: COSTE DE LA INTERFAZ Y VIDEO DE MUESTRA ==
-  [INFO] Animaciones completas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 14.23 ms/frame (ventana completa 45.0 ms)
-  [INFO] Animaciones suaves: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 13.99 ms/frame (ventana completa 46.3 ms)
-  [INFO] Animaciones desactivadas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 13.34 ms/frame (ventana completa 45.8 ms)
+  [INFO] Animaciones completas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 14.47 ms/frame (ventana completa 45.5 ms)
+  [INFO] Animaciones suaves: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 14.10 ms/frame (ventana completa 45.3 ms)
+  [INFO] Animaciones desactivadas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 13.79 ms/frame (ventana completa 44.5 ms)
   -> 240 frames en D:\a\VoxDnaPro\VoxDnaPro\test-out\frames
 
 TODOS LOS TESTS OK (0 fallos)
