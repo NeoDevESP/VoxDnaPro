@@ -115,7 +115,6 @@ def main():
     <Icon Id="AppIcon.exe" SourceFile={quoteattr(exe)}/>
     <Property Id="ARPPRODUCTICON" Value="AppIcon.exe"/>
     <Property Id="ARPCOMMENTS" Value="Plugin vocal todo-en-uno (VST3 y Standalone)"/>
-    <Property Id="ARPNOMODIFY" Value="1"/>
 
     <!-- Asistente: bienvenida + licencia + progreso + fin -->
     <ui:WixUI Id="WixUI_Minimal"/>
