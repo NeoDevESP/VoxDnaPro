@@ -95,4 +95,9 @@ if(VD_BUILD_TESTS)
         VoxDnaAssets
         juce::juce_audio_utils juce::juce_dsp juce::juce_gui_extra
         juce::juce_recommended_config_flags)
+    # el banco de pruebas crea procesadores y editores completos en la pila:
+    # Windows da 1 MB por defecto (Linux 8 MB) -> 64 MB solo para este ejecutable
+    if(MSVC)
+        target_link_options(VoxDnaTests PRIVATE /STACK:67108864)
+    endif()
 endif()
