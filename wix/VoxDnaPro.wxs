@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generado por installer/make_wxs.py — no editar a mano -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="VOX DNA PRO" Manufacturer="VOX DNA" Version="3.1.1" UpgradeCode="6F1C2B7E-3D4A-4E5B-9A61-7C0D2E9B4F15"
+           Language="3082" Codepage="1252" Scope="perMachine" Compressed="yes" InstallerVersion="500">
+    <SummaryInformation Description="VOX DNA PRO 3.1.1 - plugin vocal VST3 + Standalone" Manufacturer="VOX DNA"/>
+    <MajorUpgrade DowngradeErrorMessage="Ya hay instalada una version mas nueva de VOX DNA PRO." AllowSameVersionUpgrades="yes"/>
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+
+    <Icon Id="AppIcon.exe" SourceFile="D:\a\VoxDnaPro\VoxDnaPro\stage\app\VOX DNA PRO.exe"/>
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.exe"/>
+    <Property Id="ARPCOMMENTS" Value="Plugin vocal todo-en-uno (VST3 y Standalone)"/>
+    <Property Id="ARPNOMODIFY" Value="1"/>
+
+    <!-- Asistente: bienvenida + licencia + progreso + fin -->
+    <ui:WixUI Id="WixUI_Minimal"/>
+    <WixVariable Id="WixUILicenseRtf" Value="D:\a\VoxDnaPro\VoxDnaPro\installer\Licencia.rtf"/>
+
+    <StandardDirectory Id="CommonFiles64Folder">
+      <Directory Id="VST3DIR" Name="VST3">
+        <Directory Id="D_vst3_VOX_DNA_PRO.vst3_ca997232" Name="VOX DNA PRO.vst3">
+          <Directory Id="D_vst3_VOX_DNA_PRO.vst3_Contents_7118f316" Name="Contents">
+            <Directory Id="D_vst3_VOX_DNA_PRO.vst3_Contents_Resources_e545dae5" Name="Resources">
+              <Component Id="C_vst3_VOX_DNA_PRO.vst3_Contents_Resources_moduleinfo.json_5f67a19f" Guid="5F67A19F-4BD8-5842-BECF-0A8F49DEEB75">
+                <File Id="F_vst3_VOX_DNA_PRO.vst3_Contents_Resources_moduleinfo.json_5f67a19f" Name="moduleinfo.json" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\vst3\VOX DNA PRO.vst3\Contents\Resources\moduleinfo.json" KeyPath="yes"/>
+              </Component>
+            </Directory>
+            <Directory Id="D_vst3_VOX_DNA_PRO.vst3_Contents_x86_64_win_d1a6e531" Name="x86_64-win">
+              <Component Id="C_vst3_VOX_DNA_PRO.vst3_Contents_x86_64_win_VOX_DNA_PRO.vst3_f6fc4262" Guid="F6FC4262-9F9D-5593-9CFF-9FCBDC687635">
+                <File Id="F_vst3_VOX_DNA_PRO.vst3_Contents_x86_64_win_VOX_DNA_PRO.vst3_f6fc4262" Name="VOX DNA PRO.vst3" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\vst3\VOX DNA PRO.vst3\Contents\x86_64-win\VOX DNA PRO.vst3" KeyPath="yes"/>
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="MFGDIR" Name="VOX DNA">
+        <Directory Id="INSTALLDIR" Name="VOX DNA PRO">
+          <Component Id="C_App" Guid="3C484DAC-39D7-5A54-AA97-6C347F0CD5A4">
+            <File Id="F_AppExe" Name="VOX DNA PRO.exe" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\app\VOX DNA PRO.exe" KeyPath="yes"/>
+          </Component>
+          <Directory Id="DOCSDIR" Name="Licencias">
+            <Component Id="C_app_LEEME.txt_eb638f69" Guid="EB638F69-AF95-5BDB-8BE4-8C9C0438BC44">
+              <File Id="F_app_LEEME.txt_eb638f69" Name="LEEME.txt" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\docs\LEEME.txt" KeyPath="yes"/>
+            </Component>
+            <Component Id="C_app_OFL_Orbitron.txt_57dc4767" Guid="57DC4767-AB75-5817-B5C8-752540369854">
+              <File Id="F_app_OFL_Orbitron.txt_57dc4767" Name="OFL-Orbitron.txt" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\docs\OFL-Orbitron.txt" KeyPath="yes"/>
+            </Component>
+            <Component Id="C_app_OFL_Rajdhani.txt_aa6b0f33" Guid="AA6B0F33-10F9-5521-BFD3-ACE172FA01C0">
+              <File Id="F_app_OFL_Rajdhani.txt_aa6b0f33" Name="OFL-Rajdhani.txt" Source="D:\a\VoxDnaPro\VoxDnaPro\stage\docs\OFL-Rajdhani.txt" KeyPath="yes"/>
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="MENUDIR" Name="VOX DNA PRO">
+        <Component Id="C_Shortcut" Guid="A2ADBC21-2A1A-57CD-9E7D-1505283974CF">
+          <Shortcut Id="S_App" Name="VOX DNA PRO" Description="Plugin vocal (versión Standalone)" Target="[INSTALLDIR]VOX DNA PRO.exe" WorkingDirectory="INSTALLDIR"/>
+          <RemoveFolder Id="RF_Menu" On="uninstall"/>
+          <RegistryValue Root="HKLM" Key="Software\VOX DNA\VOX DNA PRO" Name="Installed" Type="integer" Value="1" KeyPath="yes"/>
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="VOX DNA PRO" Level="1">
+      <ComponentRef Id="C_vst3_VOX_DNA_PRO.vst3_Contents_Resources_moduleinfo.json_5f67a19f"/>
+      <ComponentRef Id="C_vst3_VOX_DNA_PRO.vst3_Contents_x86_64_win_VOX_DNA_PRO.vst3_f6fc4262"/>
+      <ComponentRef Id="C_App"/>
+      <ComponentRef Id="C_app_LEEME.txt_eb638f69"/>
+      <ComponentRef Id="C_app_OFL_Orbitron.txt_57dc4767"/>
+      <ComponentRef Id="C_app_OFL_Rajdhani.txt_aa6b0f33"/>
+      <ComponentRef Id="C_Shortcut"/>
+    </Feature>
+  </Package>
+</Wix>

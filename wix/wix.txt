@@ -1,0 +1,2 @@
+D:\a\VoxDnaPro\VoxDnaPro\VoxDnaPro.wxs(14) : error WIX0091: Duplicate Property with identifier 'ARPNOMODIFY' found. Access modifiers (global, library, file, section) cannot prevent these conflicts. Ensure all your identifiers of a given type (Directory, File, etc.) are unique.
+D:\a\wix\wix\src\ext\UI\wixlib\WixUI_Minimal.wxs(64) : error WIX0092: Location of symbol related to previous error.
