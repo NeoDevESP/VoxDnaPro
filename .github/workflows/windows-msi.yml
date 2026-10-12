@@ -45,7 +45,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p test-out
-          EXE=$(find build -name VoxDnaTests.exe | head -1); echo "exe: $EXE"
+          /usr/bin/find build -maxdepth 4 -iname "*.exe" > test-out/exes.txt || true
+          ls -R build/VoxDnaTests_artefacts >> test-out/exes.txt 2>&1 || true
+          EXE=$(/usr/bin/find build -iname VoxDnaTests.exe | head -1); echo "exe: $EXE" | tee -a test-out/exes.txt
           set +e
           "$EXE" test-out > test-out/test_report_windows.txt 2>&1
           CODE=$?
