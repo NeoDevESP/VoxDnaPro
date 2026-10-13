@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <juce_core/juce_core.h>
 #include <array>
 #include <functional>
@@ -210,6 +211,81 @@ namespace build
 
     inline void layer (PresetValues& v, int idx, float levelDb, float pan)
     { v.layOn[(size_t) idx] = 1; v.layLvl[(size_t) idx] = levelDb; v.layPan[(size_t) idx] = pan; }
+
+    // ------------------------------------------------------------------------
+    // v3.2 VOICING: sonido "de disco" para todos los presets de fábrica.
+    // Medido con el modo "tone" del banco de pruebas: antes todos salían más
+    // oscuros (-3/-6 dB por encima de 5 kHz), casi sin armónicos (<1 % THD),
+    // más picudos (FET a 8-15 ms) y más bajos que la entrada.
+    // ------------------------------------------------------------------------
+    // Ganancia de salida por preset para que la voz salga ~1 dB por encima de la entrada
+    // (calibrada con "VoxDnaTests tone 1 cal"; ver installer/../Tests). Clave: nombre del preset.
+    inline float voicingTrim (const juce::String& name)
+    {
+        static const std::map<juce::String, float> trim {
+            // VOICING-TRIM-BEGIN
+            { "21 SAVAGE", 8.0f },
+            { "2PAC", 8.3f },
+            { "50 CENT", 8.3f },
+            { "A$AP ROCKY", 7.7f },
+            { "AIRY R&B", 4.4f },
+            { "ANDRE 3000 / OUTKAST", 8.3f },
+            { "ASTRO ATMOS", 5.5f },
+            { "CARDI B", 8.7f },
+            { "CHARACTER HIGH", 5.8f },
+            { "CHARACTER LOW", 5.6f },
+            { "DOJA CAT", 5.3f },
+            { "EMINEM", 8.2f },
+            { "EMOTIVE MELODY", 2.3f },
+            { "FUTURE // Draco-style", 5.5f },
+            { "INIT // CLEAN", 4.8f },
+            { "J. COLE", 7.7f },
+            { "JAY-Z", 7.6f },
+            { "JUICE WRLD // Melodic", 4.7f },
+            { "KANYE WEST // 808s era", 7.9f },
+            { "KENDRICK LAMAR", 5.8f },
+            { "KID CUDI", 6.8f },
+            { "LIL BABY", 8.0f },
+            { "LIL UZI VERT // Tune first", 4.7f },
+            { "LIL WAYNE", 8.4f },
+            { "MAC MILLER", 6.8f },
+            { "MEGAN THEE STALLION", 8.4f },
+            { "MELODIC TRAP LEAD v1", 5.1f },
+            { "MISSY ELLIOTT", 8.7f },
+            { "NAS", 7.4f },
+            { "NICKI MINAJ", 8.9f },
+            { "PLAYBOI CARTI", 9.9f },
+            { "POP SMOKE", 8.0f },
+            { "POST MALONE", 4.2f },
+            { "RAGE EDGE", 6.1f },
+            { "SNOOP DOGG", 7.8f },
+            { "T-PAIN // Hard tune", 8.5f },
+            { "THE NOTORIOUS B.I.G.", 7.5f },
+            { "TRAVIS SCOTT // Adlibs", 6.3f },
+            { "TRAVIS SCOTT // Atmospheric", 5.3f },
+            { "XXXTENTACION", 5.0f },
+            { "YOUNG THUG", 7.6f },
+            // VOICING-TRIM-END
+        };
+        const auto it = trim.find (name);
+        return it != trim.end() ? it->second : 0.0f;
+    }
+
+    inline void voicing (PresetValues& v)
+    {
+        // FET: ataque de 1176 (los 8-15 ms dejaban pasar los picos)
+        if (v.compOn > 0.5f && v.compModel < 0.5f)
+            v.compAtt = juce::jlimit (0.4f, 3.0f, v.compAtt * 0.2f);
+        // aire + presencia + brillo armónico
+        v.eqAir = juce::jmin (9.0f, v.eqAir + 3.5f);
+        v.eqPres = juce::jmin (6.0f, v.eqPres + 1.0f);
+        v.eqExcite = juce::jmax (v.eqExcite + 15.0f, 35.0f);
+        // la saturación y el color del FET suman graves (productos de intermodulación): se compensan
+        v.eqBody = juce::jmax (-6.0f, v.eqBody - 1.5f);
+        // saturación audible en paralelo (tubo por defecto)
+        if (v.satOn < 0.5f) { v.satOn = 1; v.satMode = tube; v.satDrive = 55; v.satMix = 25; }
+        else v.satMix = juce::jmax (v.satMix, 25.0f);
+    }
 }
 
 inline const std::vector<FactoryPreset>& getFactoryPresets()
@@ -224,6 +300,9 @@ inline const std::vector<FactoryPreset>& getFactoryPresets()
         {
             PresetValues v;
             fn (v);
+            if (juce::String (name) != "INIT // CLEAN") voicing (v);
+            else if (v.compModel < 0.5f) v.compAtt = juce::jlimit (0.4f, 3.0f, v.compAtt * 0.2f);   // bug FET lento: también en INIT
+            v.outGain = juce::jlimit (-12.0f, 12.0f, v.outGain + voicingTrim (name));
             p.push_back ({ name, evidence, gr, v, cat, tag, {}, {}, {}, {} });
         };
 
@@ -241,7 +320,7 @@ inline const std::vector<FactoryPreset>& getFactoryPresets()
             layer (v, 6, -20, 0); v.layHp[6] = 300; }, "Dark Space");   // textura de pad
 
         add ("EMOTIVE MELODY", "Blueprint B: rap cantado e intimo", 4.0f, [] (PresetValues& v) {
-            tune (v, 28, 52); v.tuneVibrato = 60; eq (v, 75, -2, 0, 1.5f, 0);
+            tune (v, 28, 52); v.tuneVibrato = 60; eq (v, 75, -2, 0, 1.5f, 2.5f);
             v.compOn = 0; opto (v, 4); v.deessFreq = 6500;
             sat (v, 40, 25, tape);
             verb (v, 1.25f, 25, 16, 4); v.revType = plateType;

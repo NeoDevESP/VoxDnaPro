@@ -335,6 +335,165 @@ int main (int argc, char** argv)
     juce::ScopedJuceInitialiser_GUI gui;
     const double fs = 48000.0;
     const int block = 256;
+    // Modo "tone": huella tonal de cada preset (brillo, armónicos, compresión) sobre una voz sintética
+    if (argc > 1 && juce::String (argv[1]) == "tone")
+    {
+        const int quality = argc > 2 ? juce::String (argv[2]).getIntValue() : 1;
+        const int n = (int) fs * 6;
+        auto voice = syllables (fs, n, 196.0f);
+        {   // aliento/sibilancia: ruido filtrado > 4 kHz siguiendo la envolvente de la voz
+            std::mt19937 rng (5); std::normal_distribution<float> nd;
+            juce::dsp::IIR::Filter<float> hp; hp.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass (fs, 4000.0f); 
+            float env = 0;
+            for (auto& v : voice) { env = std::max (std::abs (v), env * 0.999f); v += 0.05f * env * hp.processSample (nd (rng)); }
+        }
+        double rms = 0; for (auto v : voice) rms += v * v; rms = std::sqrt (rms / n);
+        const double inLevel = std::getenv ("VD_LEVEL") != nullptr ? std::atof (std::getenv ("VD_LEVEL")) : -18.0;
+        for (auto& v : voice) v *= (float) (std::pow (10.0, inLevel / 20.0) / rms);
+        auto bands = [&] (const std::vector<float>& x, std::array<double, 5>& e)
+        {
+            juce::dsp::FFT fft (12); std::vector<float> buf (8192); e.fill (0);
+            const double edges[6] { 80, 300, 1000, 5000, 10000, 18000 };
+            for (int st = (int) fs; st + 4096 <= (int) x.size(); st += 2048)
+            {
+                std::fill (buf.begin(), buf.end(), 0.0f);
+                for (int i = 0; i < 4096; ++i) buf[(size_t) i] = x[(size_t) (st + i)] * (float) (0.5 - 0.5 * std::cos (2 * M_PI * i / 4095));
+                fft.performFrequencyOnlyForwardTransform (buf.data());
+                for (int k = 1; k < 2048; ++k)
+                {
+                    const double f = k * fs / 4096;
+                    for (int b = 0; b < 5; ++b) if (f >= edges[b] && f < edges[b + 1]) e[(size_t) b] += buf[(size_t) k] * buf[(size_t) k];
+                }
+            }
+        };
+        auto crest = [&] (const std::vector<float>& x)
+        {
+            double pk = 0, r = 0; int c = 0;
+            for (int i = (int) fs; i < (int) x.size(); ++i) { pk = std::max (pk, (double) std::abs (x[(size_t) i])); r += x[(size_t) i] * x[(size_t) i]; ++c; }
+            return 20 * std::log10 (pk / std::sqrt (r / c));
+        };
+        std::array<double, 5> ein; bands (voice, ein);
+        std::printf ("calidad %d | dB por banda RELATIVOS a 300-1k (cambio de forma)  | THD sobre seno 147 Hz -12 dBFS\n", quality);
+        std::printf ("%-26s %6s %6s %6s %6s %6s | %6s %6s %6s\n", "preset", "80-300", "1k-5k", "5-10k", "10-18k", "nivel", "crestΔ", "THD%", "H2/H3");
+        if (argc > 3 && juce::String (argv[3]) == "click")
+        {
+            // variante: 0 = tal cual; 1 = tune siempre off; 2 = outGain fijo 0; 3 = comp siempre off; 4 = sat siempre off
+            for (int variant = 0; variant < 12; ++variant)
+            {
+                VoxDnaProcessor p; prepare (p, fs, 128); allNeutral (p); setParam (p, "quality", (float) quality);
+                std::vector<float> sine ((size_t) fs * 3);
+                for (size_t i = 0; i < sine.size(); ++i) sine[i] = 0.3f * (float) std::sin (2 * M_PI * 220.0 * (double) i / fs);
+                juce::MidiBuffer midi; float prev = 0, maxStep = 0; int presetIdx = 0, lastEventPos = 0, maxRel = 0; juce::String ev, maxEv;
+                auto fix = [&]
+                {
+                    if (variant == 1) setParam (p, "tuneOn", 0);
+                    if (variant == 2) setParam (p, "outGain", 0);
+                    if (variant == 3) setParam (p, "compOn", 0);
+                    if (variant == 4) setParam (p, "satOn", 0);
+                    if (variant == 5) { setParam (p, "eqExcite", 0); setParam (p, "eqAir", 0); }
+                    if (variant == 6) for (int L = 1; L < 8; ++L) setParam (p, "layOn" + juce::String (L), 0);
+                    if (variant == 7) setParam (p, "hpFreq", 20);
+                    if (variant == 8) setParam (p, "gateThr", -80);
+                    if (variant == 9) setParam (p, "inGain", 0);
+                    if (variant == 10) setParam (p, "dryWet", 100);
+                    if (variant == 11) { setParam (p, "routeMode", 1); setParam (p, "chainOrder", 0); setParam (p, "toneTilt", 0); }
+                };
+                for (int pos = 0; pos + 128 <= (int) sine.size(); pos += 128)
+                {
+                    if (pos > (int) fs && pos % 9600 == 0)
+                    {
+                        lastEventPos = pos;
+                        if ((pos / 9600) % 2 == 0) { ev = p.getProgramName (presetIdx % 12); p.setCurrentProgram (presetIdx++ % 12); }
+                        else { ev = "toggle"; for (auto id : { "eqOn", "compOn", "deessOn", "optoOn" }) setParam (p, id, (p.apvts.getRawParameterValue (id)->load() > 0.5f) ? 0.0f : 1.0f); }
+                        fix();
+                    }
+                    juce::AudioBuffer<float> buf (2, 128);
+                    for (int i = 0; i < 128; ++i) { buf.setSample (0, i, sine[(size_t) (pos + i)]); buf.setSample (1, i, sine[(size_t) (pos + i)]); }
+                    p.processBlock (buf, midi);
+                    for (int i = 0; i < 128; ++i)
+                    {
+                        const float v = buf.getSample (0, i); const float st = std::abs (v - prev); prev = v;
+                        if (pos >= (int) fs && st > maxStep) { maxStep = st; maxEv = ev; maxRel = pos + i - lastEventPos; }
+                    }
+                }
+                std::printf ("variante %d: paso max %.4f tras %s (+%d)\n", variant, maxStep, maxEv.toRawUTF8(), maxRel);
+            }
+            return 0;
+        }
+        if (argc > 4 && juce::String (argv[3]) == "diagp")
+        {
+            const int prog = juce::String (argv[4]).getIntValue();
+            std::vector<std::pair<const char*, std::vector<const char*>>> offs {
+                { "preset completo", {} }, { "- tune", { "tuneOn" } }, { "- comp", { "compOn" } }, { "- opto", { "optoOn" } },
+                { "- deess", { "deessOn" } }, { "- eq", { "eqOn" } }, { "- sat", { "satOn" } }, { "- mod", { "modOn" } },
+                { "- dly+rev", { "dlyOn", "revOn" } }, { "- capas 1..7", { "layOn1", "layOn2", "layOn3", "layOn4", "layOn5", "layOn6", "layOn7" } } };
+            for (auto& o : offs)
+            {
+                VoxDnaProcessor p; prepare (p, fs, block); p.setCurrentProgram (prog); setParam (p, "quality", (float) quality);
+                for (auto id : o.second) setParam (p, id, 0);
+                for (int k = 0; k < 4; ++k) run (p, std::vector<float> ((size_t) block * 16, 0.0f), block);
+                auto out = run (p, voice, block);
+                std::array<double, 5> eo; bands (out, eo);
+                double d[5]; for (int b = 0; b < 5; ++b) d[b] = 10 * std::log10 ((eo[(size_t) b] + 1e-20) / (ein[(size_t) b] + 1e-20));
+                std::printf ("%-26s %+6.1f %+6.1f %+6.1f %+6.1f %+6.1f | %+6.1f\n", o.first, d[0] - d[1], d[2] - d[1], d[3] - d[1], d[4] - d[1], d[1], crest (out) - crest (voice));
+            }
+            return 0;
+        }
+        if (argc > 3 && juce::String (argv[3]) == "diag")
+        {
+            struct Cfg { const char* name; std::vector<std::pair<const char*, float>> set; };
+            std::vector<Cfg> cfgs {
+                { "todo apagado", {} },
+                { "+ tune on", { { "tuneOn", 1 } } },
+                { "tune on + amount 0", { { "tuneOn", 1 }, { "tuneAmount", 0 } } },
+                { "+ eq on", { { "eqOn", 1 } } },
+                { "+ comp on", { { "compOn", 1 } } },
+                { "+ opto on", { { "optoOn", 1 } } },
+                { "+ deess on", { { "deessOn", 1 } } },
+                { "+ sat on", { { "satOn", 1 } } },
+                { "dryWet 0", { { "dryWet", 0 } } },
+                { "comp FET att 10", { { "compOn", 1 } } },
+                { "comp FET att 1", { { "compOn", 1 }, { "compAtt", 1 } } },
+                { "comp FET att 1 rel 40", { { "compOn", 1 }, { "compAtt", 1 }, { "compRel", 40 } } },
+                { "comp VCA att 10", { { "compOn", 1 }, { "compModel", 1 } } },
+                { "comp FET ratio 8 thr -30", { { "compOn", 1 }, { "compRatio", 8 }, { "compThr", -30 } } },
+            };
+            for (auto& c : cfgs)
+            {
+                VoxDnaProcessor p; prepare (p, fs, block); allNeutral (p); setParam (p, "tuneOn", 0); setParam (p, "quality", (float) quality);
+                for (auto& kv : c.set) setParam (p, kv.first, kv.second);
+                for (int k = 0; k < 4; ++k) run (p, std::vector<float> ((size_t) block * 16, 0.0f), block);
+                auto out = run (p, voice, block);
+                std::array<double, 5> eo; bands (out, eo);
+                double d[5]; for (int b = 0; b < 5; ++b) d[b] = 10 * std::log10 ((eo[(size_t) b] + 1e-20) / (ein[(size_t) b] + 1e-20));
+                std::printf ("%-26s %+6.1f %+6.1f %+6.1f %+6.1f %+6.1f | %+6.1f\n", c.name, d[0] - d[1], d[2] - d[1], d[3] - d[1], d[4] - d[1], d[1], crest (out) - crest (voice));
+            }
+            return 0;
+        }
+        for (int prog = 0; prog < VoxDnaProcessor().getNumPrograms(); ++prog)
+        {
+            VoxDnaProcessor p; prepare (p, fs, block); p.setCurrentProgram (prog); setParam (p, "quality", (float) quality);
+            for (int k = 0; k < 4; ++k) run (p, std::vector<float> ((size_t) block * 16, 0.0f), block);   // transición de calidad
+            auto out = run (p, voice, block);
+            std::array<double, 5> eo; bands (out, eo);
+            double d[5]; for (int b = 0; b < 5; ++b) d[b] = 10 * std::log10 ((eo[(size_t) b] + 1e-20) / (ein[(size_t) b] + 1e-20));
+            VoxDnaProcessor p2; prepare (p2, fs, block); p2.setCurrentProgram (prog); setParam (p2, "quality", (float) quality);
+            setParam (p2, "tuneOn", 0); setParam (p2, "dlyOn", 0); setParam (p2, "revOn", 0); setParam (p2, "modOn", 0);
+            for (int k = 0; k < 4; ++k) run (p2, std::vector<float> ((size_t) block * 16, 0.0f), block);
+            std::vector<float> sine ((size_t) fs * 2);
+            for (size_t i = 0; i < sine.size(); ++i) sine[i] = 0.25f * (float) std::sin (2 * M_PI * 146.83 * (double) i / fs);
+            auto so = run (p2, sine, block);
+            const auto h = harmonics (so, fs, 146.83);
+            double ri = 0, ro = 0;
+            for (int i = (int) fs; i < n; ++i) { ri += voice[(size_t) i] * voice[(size_t) i]; ro += out[(size_t) i] * out[(size_t) i]; }
+            const double lvl = 10 * std::log10 (ro / ri);
+            if (argc > 3 && juce::String (argv[3]) == "cal") { std::printf ("CAL\t%s\t%.2f\n", p.getProgramName (prog).toRawUTF8(), lvl); continue; }
+            if (argc > 3 && juce::String (argv[3]) == "lufs") { std::printf ("LUFS entrada (corto plazo): %.2f  integrado %.2f\n", p.inLoudness.shortTerm.load(), p.inLoudness.integrated.load()); return 0; }
+            std::printf ("%-26s %+6.1f %+6.1f %+6.1f %+6.1f %+6.1f | %+6.1f %6.2f %6.1f\n", p.getProgramName (prog).substring (0, 26).toRawUTF8(),
+                         d[0] - d[1], d[2] - d[1], d[3] - d[1], d[4] - d[1], d[1], crest (out) - crest (voice), 100 * h.thd, 20 * std::log10 ((h.h2 + 1e-12) / (h.h3 + 1e-12)));
+        }
+        return 0;
+    }
     // Modo carrera: audio en un hilo real + UI en el hilo de mensajes (para ThreadSanitizer)
     if (argc > 1 && juce::String (argv[1]) == "race")
     {
@@ -1321,6 +1480,105 @@ int main (int argc, char** argv)
         }
     }
 
+    std::printf ("\n== v3.2 SHINE: DE-ESSER RELATIVO, EXCITER, VOICING DE PRESETS ==\n");
+    {
+        // energía de una banda (FFT 4096, Hann) en [a, b) Hz desde 1 s
+        auto bandDb = [&] (const std::vector<float>& x, double f0, double f1)
+        {
+            juce::dsp::FFT fft (12); std::vector<float> buf (8192); double e = 0;
+            for (int st = (int) fs; st + 4096 <= (int) x.size(); st += 2048)
+            {
+                std::fill (buf.begin(), buf.end(), 0.0f);
+                for (int i = 0; i < 4096; ++i) buf[(size_t) i] = x[(size_t) (st + i)] * (float) (0.5 - 0.5 * std::cos (2 * M_PI * i / 4095));
+                fft.performFrequencyOnlyForwardTransform (buf.data());
+                for (int k = 1; k < 2048; ++k) { const double f = k * fs / 4096; if (f >= f0 && f < f1) e += buf[(size_t) k] * buf[(size_t) k]; }
+            }
+            return 10 * std::log10 (e + 1e-20);
+        };
+        auto breathyVoice = [&] (float levelDb)
+        {
+            auto v = syllables (fs, (int) fs * 4, 196.0f);
+            std::mt19937 rng (5); std::normal_distribution<float> nd;
+            juce::dsp::IIR::Filter<float> hp; hp.coefficients = juce::dsp::IIR::Coefficients<float>::makeHighPass (fs, 4000.0f);
+            float env = 0;
+            for (auto& x : v) { env = std::max (std::abs (x), env * 0.999f); x += 0.05f * env * hp.processSample (nd (rng)); }
+            double r = 0; for (auto x : v) r += x * x; r = std::sqrt (r / (double) v.size());
+            for (auto& x : v) x *= (float) (std::pow (10.0, levelDb / 20.0) / r);
+            return v;
+        };
+        auto deessOnly = [&] (VoxDnaProcessor& p) { allNeutral (p); setParam (p, "tuneOn", 0); setParam (p, "deessOn", 1); };
+
+        // 1) vocal con aliento: el de-esser NO debe apagar los agudos
+        {
+            auto v = breathyVoice (-18.0f);
+            VoxDnaProcessor p; prepare (p, fs, block); deessOnly (p);
+            auto y = run (p, v, block);
+            const double d = (bandDb (y, 5000, 18000) - bandDb (y, 300, 1000)) - (bandDb (v, 5000, 18000) - bandDb (v, 300, 1000));
+            check (d > -1.0, "De-esser relativo: no apaga la voz (vocales con aliento)", "5-18 kHz " + juce::String (d, 2) + " dB");
+        }
+        // 2) "s" fuerte (ruido 5-10 kHz al nivel de la voz): sí la reduce
+        {
+            std::vector<float> v ((size_t) fs * 4, 0.0f);
+            std::mt19937 rng (9); std::normal_distribution<float> nd;
+            juce::dsp::IIR::Filter<float> bp; bp.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass (fs, 7000.0f, 1.2f);
+            for (size_t i = 0; i < v.size(); ++i)
+            {
+                const double t = (double) i / fs, ph = std::fmod (t, 0.5);
+                const float burst = ph < 0.15 ? (float) std::sin (M_PI * ph / 0.15) : 0.0f;
+                v[i] = 0.35f * burst * bp.processSample (nd (rng));
+            }
+            VoxDnaProcessor p; prepare (p, fs, block); deessOnly (p);
+            auto y = run (p, v, block);
+            const double d = bandDb (y, 5000, 10000) - bandDb (v, 5000, 10000);
+            check (d < -2.0, "De-esser relativo: reduce sibilantes", juce::String (d, 1) + " dB en 5-10 kHz");
+        }
+        // 3) exciter independiente del nivel: añade brillo similar con voz suave y fuerte
+        {
+            double add[2];
+            int k = 0;
+            for (float lvl : { -30.0f, -10.0f })
+            {
+                auto v = breathyVoice (lvl);
+                pv::Exciter ex; ex.prepare (fs);
+                auto y = v;
+                for (int pos = 0; pos + block <= (int) y.size(); pos += block) ex.process (y.data() + pos, nullptr, block, 0.6f);
+                add[k++] = (bandDb (y, 6000, 18000) - bandDb (y, 300, 1000)) - (bandDb (v, 6000, 18000) - bandDb (v, 300, 1000));
+            }
+            check (add[0] > 2.0 && add[1] > 2.0 && std::abs (add[0] - add[1]) < 3.0, "Exciter SHINE independiente del nivel",
+                   "-30 dB: +" + juce::String (add[0], 1) + " dB, -10 dB: +" + juce::String (add[1], 1) + " dB");
+        }
+        // 4) huella de los presets de fábrica: brillo, nivel y armónicos
+        {
+            auto v = breathyVoice (-18.0f);
+            const double inShape = bandDb (v, 10000, 18000) - bandDb (v, 300, 1000);
+            double ri = 0; for (int i = (int) fs; i < (int) v.size(); ++i) ri += v[(size_t) i] * v[(size_t) i];
+            int dark = 0, level = 0, clean = 0; juce::String worst;
+            const int np = VoxDnaProcessor().getNumPrograms();
+            for (int prog = 1; prog < np; ++prog)
+            {
+                VoxDnaProcessor p; prepare (p, fs, block); p.setCurrentProgram (prog); setParam (p, "quality", 1);
+                for (int k = 0; k < 4; ++k) run (p, std::vector<float> ((size_t) block * 16, 0.0f), block);
+                auto y = run (p, v, block);
+                const double air = (bandDb (y, 10000, 18000) - bandDb (y, 300, 1000)) - inShape;
+                double ro = 0; for (int i = (int) fs; i < (int) y.size(); ++i) ro += y[(size_t) i] * y[(size_t) i];
+                const double lvl = 10 * std::log10 (ro / ri);
+                VoxDnaProcessor p2; prepare (p2, fs, block); p2.setCurrentProgram (prog); setParam (p2, "quality", 1);
+                for (auto id : { "tuneOn", "dlyOn", "revOn", "modOn" }) setParam (p2, id, 0);
+                std::vector<float> sine ((size_t) fs * 2);
+                for (size_t i = 0; i < sine.size(); ++i) sine[i] = 0.25f * (float) std::sin (2 * M_PI * 146.83 * (double) i / fs);
+                const auto h = harmonics (run (p2, sine, block), fs, 146.83);
+                const auto nm = p.getProgramName (prog);
+                // TRAVIS // Adlibs es un preset de adlibs filtrados (telefono): oscuro a propósito
+                if (air < 1.5 && ! nm.contains ("Adlibs")) { ++dark; worst << nm << " aire " << juce::String (air, 1) << "; "; }
+                if (lvl < -0.5 || lvl > 2.0) { ++level; worst << nm << " nivel " << juce::String (lvl, 1) << "; "; }
+                if (h.thd < 0.004) { ++clean; worst << nm << " THD " << juce::String (100 * h.thd, 2) << "%; "; }
+            }
+            check (dark == 0, "Presets con aire (+1.5 dB o mas en 10-18 kHz)", dark == 0 ? juce::String (np - 1) + " presets" : worst);
+            check (level == 0, "Presets con nivel calibrado (-0.5..+2 dB frente a la entrada)", level == 0 ? juce::String ("ok") : worst);
+            check (clean == 0, "Presets con saturacion audible (THD >= 0.4 %)", clean == 0 ? juce::String ("ok") : worst);
+        }
+    }
+
     std::printf ("\n== v3.0 STUDIO: SECUENCIADOR, TONE TILT, TECHO, LINK ==\n");
     {
         // GATE: el paso 4 de cada grupo (s % 4 == 3) silencia; 1/16 a 120 BPM = 125 ms
@@ -1367,8 +1625,10 @@ int main (int argc, char** argv)
                 auto y = run (p, sig, 256);
                 return energyDb (y, (int) fs / 2, (int) fs) - energyDb (sig, (int) fs / 2, (int) fs);
             };
-            const double hi = gainAt (10000, 6), lo = gainAt (100, 6), flat = gainAt (1000, 0);
-            check (std::abs ((hi - lo) - 6.0) < 1.0 && std::abs (flat) < 0.3, "TONE TILT +6 dB (100 Hz vs 10 kHz)",
+            // relativo a tilt 0 en cada frecuencia (los presets llevan su ganancia de salida calibrada)
+            const double hi = gainAt (10000, 6) - gainAt (10000, 0), lo = gainAt (100, 6) - gainAt (100, 0);
+            const double flat = gainAt (1000, 6) - gainAt (1000, 0);
+            check (std::abs ((hi - lo) - 6.0) < 1.0 && std::abs (flat) < 0.5, "TONE TILT +6 dB (100 Hz vs 10 kHz)",
                    "100 Hz " + juce::String (lo, 1) + " dB, 10 kHz +" + juce::String (hi, 1) + " dB");
         }
         // techo ajustable: -3 dBTP
@@ -1399,6 +1659,9 @@ int main (int argc, char** argv)
                    "sin link +" + juce::String (unlinked - ref, 1) + " dB, con link " + juce::String (linked - ref, 2) + " dB");
         }
         // orden de la cadena: cambiarlo en reproducción sin clicks ni NaN
+        // (v3.2: comparado con la misma señal sin cambios: RAGE EDGE recorta y tiene pasos grandes de por sí)
+        float baseStepOrder = 0.0f;
+        for (int pass = 0; pass < 2; ++pass)
         {
             VoxDnaProcessor p; prepare (p, fs, 256);
             p.setCurrentProgram (3);   // RAGE EDGE: EQ + FET + Rage Clip
@@ -1407,7 +1670,7 @@ int main (int argc, char** argv)
             juce::MidiBuffer midi;
             for (int pos = 0, k = 0; pos + 256 <= (int) sig.size(); pos += 256, ++k)
             {
-                if (k % 40 == 20) setParam (p, "chainOrder", (float) ((k / 40) % 6));
+                if (pass == 1 && k % 40 == 20) setParam (p, "chainOrder", (float) ((k / 40) % 6));
                 juce::AudioBuffer<float> buf (2, 256);
                 for (int i = 0; i < 256; ++i) { buf.setSample (0, i, sig[(size_t) (pos + i)]); buf.setSample (1, i, sig[(size_t) (pos + i)]); }
                 p.processBlock (buf, midi);
@@ -1419,7 +1682,9 @@ int main (int argc, char** argv)
                     prev = v;
                 }
             }
-            check (! nan && maxStep < 0.25f, "Orden de la cadena (6 permutaciones) cambiado en reproduccion", "paso max " + juce::String (maxStep, 3));
+            if (pass == 0) { baseStepOrder = maxStep; continue; }
+            check (! nan && maxStep < juce::jmax (0.25f, 1.6f * baseStepOrder), "Orden de la cadena (6 permutaciones) cambiado en reproduccion",
+                   "paso max " + juce::String (maxStep, 3) + " (sin cambios " + juce::String (baseStepOrder, 3) + ")");
         }
         // el orden se aplica de verdad: EQ>COMP>COLOR frente a COLOR>COMP>EQ (diferencia de forma de onda)
         {

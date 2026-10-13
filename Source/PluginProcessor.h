@@ -155,6 +155,7 @@ private:
 
     using Filter = juce::dsp::IIR::Filter<float>;
     std::array<Filter, 2> hp1, hp2, eqBodyF, eqMudF, eqPresF, eqAirF, tiltLoF, tiltHiF;
+    bool hpActive = false;
     std::array<Filter, 4> splitHpF, splitLpF;   // SPLIT: [0,1] envío de delay, [2,3] envío de reverb
     float lastHp = -1, lastBody = -100, lastMud = -100, lastPres = -100, lastAir = -100, lastTilt = -100;
     juce::SmoothedValue<float, juce::ValueSmoothingTypes::Multiplicative> hpSm;

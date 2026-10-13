@@ -1,5 +1,48 @@
 # VOX DNA PRO — Changelog
 
+## v3.2 — Shine
+
+El plugin sonaba apagado y "limpio de más". Medido con el nuevo modo `VoxDnaTests tone`, que pasa una voz con aliento por cada preset: **todos** los presets salían más oscuros que la entrada (−3/−9 dB por encima de 5 kHz, incluso INIT // CLEAN), casi sin armónicos (<1 % THD), más picudos y 2–5 dB más bajos.
+
+### Arreglos (bugs)
+
+- **De-esser relativo:** antes comparaba la banda de las eses con un umbral absoluto y, con una voz a nivel normal, recortaba los agudos todo el rato, desde unos 5 kHz. Ahora solo actúa cuando la sibilancia domina sobre la voz, en una "s" o una "ch". En las vocales pasa de −4/−6 dB a −0,2 dB.
+- **Ataque del FET:** los presets usaban 8–15 ms, que dejaban pasar los picos y aplastaban el cuerpo de la voz. Ahora va a 0,4–3 ms, como un 1176 real.
+- **Clic al cambiar de preset:** el filtro paso alto se reactivaba con estado viejo. Ya existía; con los nuevos niveles se hacía audible.
+- **Exciter sin rampa:** al cambiar de preset su cantidad saltaba de golpe y producía un clic.
+
+### Sonido
+
+- **Exciter SHINE** reescrito: normaliza la banda alta por su envolvente y la satura con una curva asimétrica, que da armónicos pares e impares. Añade el mismo brillo con voz suave o fuerte (+2,4 dB a −30 y a −10 dB). El antiguo prácticamente no generaba armónicos.
+- **Revoicing de los 40 presets de fábrica:**
+  - +3,5 dB de aire y +1 dB de presencia.
+  - Exciter al 35 % o más.
+  - Saturación de tubo en paralelo al 25 % o más.
+  - −1,5 dB de Body para compensar la calidez que añade la saturación.
+  - Nivel de salida calibrado: la voz sale entre +0,4 y +1 dB por encima de la entrada.
+  - INIT // CLEAN sigue neutro; solo recibe el arreglo del FET y el nivel.
+- **Macros con más recorrido:**
+  - **AIR** a tope: +6 dB de aire, +45 % de exciter y +1,5 dB de presencia.
+  - **COLOR** a tope: +35 % de mezcla y más drive.
+- **AUTO de entrada** apunta a −15 LUFS, el nivel para el que están calibrados los presets. Canta 3 segundos y pulsa.
+
+### Resultado medido (modo MIX, voz a −18 dBFS RMS)
+
+| | v3.1 | v3.2 |
+|---|---|---|
+| Brillo entre 5 y 10 kHz | −2 a −5 dB | +0,5 a +2,5 dB |
+| Aire entre 10 y 18 kHz | −4 a −9 dB | +2 a +4,5 dB |
+| THD (seno de 147 Hz) | 0,01–1 % | 0,4–2,5 % (rage ~7 %) |
+| Nivel frente a la entrada | −2 a −5 dB | +0,4 a +1 dB |
+
+Las pruebas nuevas fijan este comportamiento: de-esser, exciter y huella de cada preset.
+
+## v3.1.1
+
+- **MONITOR (~7 ms) por defecto**, para poder cantar con el plugin insertado. MIX añade ~50 ms entre el formant y la ventana de afinación.
+- El indicador de latencia se pone en ámbar a partir de 12 ms y en rojo a partir de 25 ms.
+- Instalador .msi hecho con WiX 5, con asistente en español.
+
 ## v3.1 — Motion
 
 Animaciones que reaccionan a la voz y al tempo del DAW. Se ajustan en ⚙ → *Animaciones*: **Completas** (60 fps, por defecto), **Suaves** (30 fps y menos partículas) o **Desactivadas**. Vídeo de muestra renderizado del propio plugin: `docs/motion_preview.mp4` y `docs/motion_preview_hero.mp4`.

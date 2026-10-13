@@ -193,7 +193,7 @@ public:
         crossover.setType (juce::dsp::LinkwitzRileyFilterType::lowpass);
         att = msToCoef (fs, 0.4f);
         rel = msToCoef (fs, 60.0f);
-        env = 0.0f; gr = 0.0f; lastFreq = -1.0f;
+        env = envFull = 0.0f; gr = 0.0f; lastFreq = -1.0f;
         detector.coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass (fs, 6500.0f, 1.4f);   // se reutiliza: sin allocs en audio
         detector.reset();
         setParameters (-28.0f, 6500.0f);
@@ -218,9 +218,17 @@ public:
             const float mono = r != nullptr ? 0.5f * (l[i] + r[i]) : l[i];
             const float d = std::abs (detector.processSample (mono));
             env = d > env ? d + att * (env - d) : d + rel * (env - d);
+            const float a = std::abs (mono);
+            envFull = a > envFull ? a + att * (envFull - a) : a + rel * (envFull - a);
 
+            // v3.2: detección RELATIVA. Sólo hay "s" cuando la banda sibilante se acerca al nivel
+            // de toda la voz (vocales: -20..-35 dB; sibilantes: -2..-8 dB). Antes, con umbral
+            // absoluto, recortaba los agudos de forma continua y apagaba la voz.
+            const float sib = toDb (env) - toDb (envFull + 1.0e-9f);
+            const float w = juce::jlimit (0.0f, 1.0f, (sib + 14.0f) / 8.0f);
+            const float dominance = w * w * (3.0f - 2.0f * w);
             const float over = toDb (env) - threshold;
-            const float target = over > 0.0f ? juce::jmin (over * 0.8f, 18.0f) : 0.0f;
+            const float target = over > 0.0f ? juce::jmin (over * 0.8f, 18.0f) * dominance : 0.0f;
             gr = target > gr ? target + att * (gr - target) : target + rel * (gr - target);
             const float g = fromDb (-gr);
 
@@ -241,7 +249,7 @@ private:
     double fs = 44100.0;
     juce::dsp::LinkwitzRileyFilter<float> crossover;
     juce::dsp::IIR::Filter<float> detector;
-    float threshold = -28.0f, att = 0, rel = 0, env = 0, gr = 0, lastFreq = -1.0f;
+    float threshold = -28.0f, att = 0, rel = 0, env = 0, envFull = 0, gr = 0, lastFreq = -1.0f;
 };
 // ----------------------------------------------------------------------------
 // EQ dinámica de dureza (~3.2 kHz, Q 2): sólo recorta cuando la voz "pica"

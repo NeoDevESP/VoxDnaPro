@@ -72,26 +72,55 @@ private:
 class Exciter
 {
 public:
+    // v3.2 "SHINE": exciter independiente del nivel.
+    //   banda > 2.8 kHz -> normalizada por su envolvente (1 ms / 40 ms) -> curva asimétrica
+    //   (armónicos pares + impares) -> se restaura el nivel -> HP 4.5 kHz -> mezcla en paralelo.
+    //   Antes la tanh recibía la banda a ~-30 dB y era prácticamente lineal (sólo un shelf).
     void prepare (double sampleRate)
     {
-        auto c = juce::dsp::IIR::Coefficients<float>::makeHighPass (sampleRate, 3000.0f, 0.7071f);
-        for (auto& f : hp1) { f.coefficients = c; f.reset(); }
-        for (auto& f : hp2) { f.coefficients = c; f.reset(); }
+        fs = sampleRate;
+        auto c1 = juce::dsp::IIR::Coefficients<float>::makeHighPass (fs, 2800.0f, 0.7071f);
+        auto c2 = juce::dsp::IIR::Coefficients<float>::makeHighPass (fs, (float) juce::jmin (4500.0, fs * 0.4), 0.7071f);
+        for (auto& f : hp1) { f.coefficients = c1; f.reset(); }
+        for (auto& f : hp2) { f.coefficients = c2; f.reset(); }
+        att = std::exp (-1.0f / (0.001f * (float) fs));
+        rel = std::exp (-1.0f / (0.040f * (float) fs));
+        env[0] = env[1] = 0.0f;
+        last = 0.0f;
     }
 
+    // amount01 se rampa desde el valor del bloque anterior (sin clicks al cambiar de preset).
+    // Los filtros y envolventes corren siempre: al reactivarlo no queda estado viejo.
     void process (float* l, float* r, int n, float amount01)
     {
-        if (amount01 <= 0.001f) return;
-        const float a = amount01 * 0.35f;
+        const float a0 = last, a1 = juce::jlimit (0.0f, 1.0f, amount01);
+        last = a1;
+        const float step = n > 0 ? (a1 - a0) / (float) n : 0.0f;
+        float am = a0;
         for (int i = 0; i < n; ++i)
         {
-            l[i] += a * hp2[0].processSample (std::tanh (4.0f * hp1[0].processSample (l[i])) * 0.5f);
-            if (r != nullptr)
-                r[i] += a * hp2[1].processSample (std::tanh (4.0f * hp1[1].processSample (r[i])) * 0.5f);
+            am += step;
+            const float a = 0.9f * am, drive = 1.2f + 1.6f * am;
+            const float sl = shine (0, l[i], drive);
+            l[i] += a * sl;
+            if (r != nullptr) { const float sr = shine (1, r[i], drive); r[i] += a * sr; }
         }
     }
 
 private:
+    float shine (int c, float x, float drive)
+    {
+        const float b = hp1[c].processSample (x);
+        const float ab = std::abs (b);
+        env[c] = ab > env[c] ? ab + att * (env[c] - ab) : ab + rel * (env[c] - ab);
+        const float e = env[c] + 1.0e-4f;
+        const float u = b / e;                                   // ~ amplitud unidad
+        const float y = std::tanh (drive * u + 0.3f) - 0.29131f; // tanh(0.3): sin DC en reposo
+        return hp2[c].processSample (y * e * 0.5f);
+    }
+
+    double fs = 48000.0;
+    float att = 0.0f, rel = 0.0f, env[2] {}, last = 0.0f;
     juce::dsp::IIR::Filter<float> hp1[2], hp2[2];
 };
 

@@ -1143,12 +1143,13 @@ ChainPanel::ChainPanel (UiContext& c)
         b->getProperties().set ("fontSize", 11.5f);
         addAndMakeVisible (b);
     }
-    autoButton.setTooltip ("AUTO: ajusta el trim de entrada para una voz a ~-20 LUFS a corto plazo (canta 3 s y pulsa)");
+    autoButton.setTooltip ("AUTO: canta 3 s y pulsa. Ajusta la entrada al nivel para el que estan calibrados los presets (~-15 LUFS)");
     autoButton.onClick = [this]
     {
+        // v3.2: -15 LUFS a corto plazo = voz a ~-18 dBFS RMS (pista mono en canal estéreo), el punto de calibración
         const float st = ctx.proc.inLoudness.shortTerm.load();
         if (st < -70.0f) return;
-        ctx.setValue ("inGain", juce::jlimit (-24.0f, 24.0f, ctx.value ("inGain") + (-20.0f - st)));
+        ctx.setValue ("inGain", juce::jlimit (-24.0f, 24.0f, ctx.value ("inGain") + (-15.0f - st)));
     };
     monitorButton.setTooltip ("MONITOR: latencia minima (~7 ms) para grabar. Desactivalo (MIX, ~50 ms) solo para mezclar");
     monitorButton.setClickingTogglesState (true);

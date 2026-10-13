@@ -551,16 +551,17 @@ void VoxDnaProcessor::processChunk (juce::AudioBuffer<float>& buffer)
     const float humanize = juce::jlimit (0.0f, 100.0f, *q.tuneHumanize * (1.0f - 0.5f * tTune) * mHuman);
     const float bodyDb   = *q.eqBody + 4.0f * tBody;
     const float mudDb    = *q.eqMud - 1.5f * tBody;
-    const float airDb    = *q.eqAir + 4.0f * tAir;
-    const float presDb   = *q.eqPres + 3.0f * tEnergy;
-    const float excite   = juce::jlimit (0.0f, 1.0f, (*q.eqExcite + 30.0f * juce::jmax (0.0f, tAir)) * 0.01f);
+    // v3.2: AIR y COLOR con más recorrido (un macro tiene que notarse como en un plugin de un knob)
+    const float airDb    = *q.eqAir + 6.0f * tAir;
+    const float presDb   = *q.eqPres + 3.0f * tEnergy + 1.5f * juce::jmax (0.0f, tAir);
+    const float excite   = juce::jlimit (0.0f, 1.0f, (*q.eqExcite + 45.0f * juce::jmax (0.0f, tAir)) * 0.01f);
     const float deessThr = *q.deessThr - 4.0f * juce::jmax (0.0f, tAir);
     const float optoAmt  = juce::jlimit (0.0f, 100.0f, *q.optoAmount + 20.0f * tBody + 15.0f * tComp);
     const float compThr  = juce::jlimit (-60.0f, 0.0f, *q.compThr - 8.0f * tComp + dThr);
     const float compAtt  = juce::jlimit (0.1f, 100.0f, *q.compAtt * std::exp2 (1.5f * tPunch));
     const float parallel = juce::jlimit (0.0f, 100.0f, *q.compPar + 30.0f * tPunch + 20.0f * juce::jmax (0.0f, tEnergy));
     const bool  colorOn  = *q.satOn > 0.5f;
-    const float colorMix = juce::jlimit (0.0f, 100.0f, ((colorOn ? q.satMix->load() : 0.0f) + 25.0f * tColor) * (colorOn ? mSat : 1.0f)) * 0.01f;
+    const float colorMix = juce::jlimit (0.0f, 100.0f, ((colorOn ? q.satMix->load() : 0.0f) + 35.0f * tColor) * (colorOn ? mSat : 1.0f)) * 0.01f;
     const float spaceMul = std::exp2 (1.2f * tSpace) * mFx;
     const float dlyMul   = spaceMul * std::exp2 (1.5f * tDelay);
     const float revMul   = spaceMul * std::exp2 (1.5f * tReverb);
@@ -620,7 +621,11 @@ void VoxDnaProcessor::processChunk (juce::AudioBuffer<float>& buffer)
     };
 
     // ---------------- CLEAN ----------------
-    if (hpSm.getCurrentValue() > 21.0f || hpSm.getTargetValue() > 21.0f)
+    const bool hpWanted = hpSm.getCurrentValue() > 21.0f || hpSm.getTargetValue() > 21.0f;
+    if (hpWanted && ! hpActive)
+        for (auto* f : { &hp1, &hp2 }) for (auto& x : *f) x.reset();   // v3.2: sin estado viejo al reactivarlo (click)
+    hpActive = hpWanted;
+    if (hpWanted)
         for (int s0 = 0; s0 < n; s0 += chunk)
         {
             const int len = juce::jmin (chunk, n - s0);
@@ -743,7 +748,7 @@ void VoxDnaProcessor::processChunk (juce::AudioBuffer<float>& buffer)
         }
         satMixSm.setTargetValue (targetMix);
         const auto mode = (pv::ColorMode) colorModeActive;
-        driveSm.setTargetValue (juce::jlimit (0.0f, 1.0f, (*q.satDrive + (dna == 2 ? 15.0f : 0.0f)) * 0.01f));
+        driveSm.setTargetValue (juce::jlimit (0.0f, 1.0f, (*q.satDrive + (dna == 2 ? 15.0f : 0.0f) + 25.0f * tColor) * 0.01f));
         const float drive = driveSm.skip (n);
         if (aq == monitor)
         {
