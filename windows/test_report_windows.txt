@@ -18,7 +18,7 @@
 == FORMANT SHIFT ==
   [ OK ] F0 intacta con formant 0 st 150.0 Hz
   [ OK ] F0 intacta con formant 3 st 150.0 Hz
-  [ OK ] Formantes suben con +3 st centroide 1467 -> 1786 Hz
+  [ OK ] Formantes suben con +3 st centroide 1467 -> 1789 Hz
   [ OK ] F0 intacta con formant -3 st 150.0 Hz
   [ OK ] Formantes bajan con -3 st centroide 1467 -> 1231 Hz
 
@@ -27,14 +27,14 @@
   [ OK ] Modo MONITOR dry/wet 50% medida 331 / reportada 331 smp, picos>0.1: 1
   [ OK ] Modo MIX dry/wet 100% medida 2580 / reportada 2580 smp, picos>0.1: 1
   [ OK ] Modo MIX dry/wet 50% medida 2580 / reportada 2580 smp, picos>0.1: 1
-  [ OK ] Modo RENDER HQ dry/wet 100% medida 2592 / reportada 2592 smp, picos>0.1: 3
-  [ OK ] Modo RENDER HQ dry/wet 50% medida 2592 / reportada 2592 smp, picos>0.1: 2
+  [ OK ] Modo RENDER HQ dry/wet 100% medida 2592 / reportada 2592 smp, picos>0.1: 5
+  [ OK ] Modo RENDER HQ dry/wet 50% medida 2592 / reportada 2592 smp, picos>0.1: 3
 
 == SAMPLE RATES x BLOQUES VARIABLES (preset RAGE EDGE + 8 capas) ==
-  [ OK ] 44.1 kHz peak 0.642
-  [ OK ] 48.0 kHz peak 0.636
-  [ OK ] 88.2 kHz peak 0.658
-  [ OK ] 96.0 kHz peak 0.656
+  [ OK ] 44.1 kHz peak 0.876
+  [ OK ] 48.0 kHz peak 0.876
+  [ OK ] 88.2 kHz peak 0.876
+  [ OK ] 96.0 kHz peak 0.876
 
 == PRESET RECALL / JSON ==
   [ OK ] Sesion guardar/reabrir exacta 152 parametros, diferencias: 0
@@ -49,10 +49,10 @@
   [ OK ] Correlacion estereo mono-compatible 0.92
 
 == CLICKS AL CAMBIAR PRESETS / MODULOS ==
-  [ OK ] Sin discontinuidades al cambiar presets/modulos paso max 0.0418 (base 0.0086) tras: preset INIT // CLEAN (+331 smp)
+  [ OK ] Sin discontinuidades al cambiar presets/modulos paso max 0.0257 (base 0.0150) tras: preset AIRY R&B (+64 smp)
 
 == ALIASING (Rage Clip, seno 3.5 kHz, energia 400-3000 Hz) ==
-  MONITOR 26.6 dB  MIX -3.4 dB  RENDER HQ -11.8 dB
+  MONITOR 31.4 dB  MIX 1.4 dB  RENDER HQ -7.0 dB
   [ OK ] Oversampling reduce el aliasing 
 
 == DNA TUNE v2.2 (voz, octavas, consonantes, transiciones, flex, formantes) ==
@@ -94,8 +94,8 @@
   [ OK ] RENDER HQ @ 96.0 kHz reportada 42.50 ms | tune ON: ataques 0.04 ms, deriva media en notas sostenidas -0.74 ms (limite +-30.0)
 
 == CAMBIO DE MODO DE CALIDAD DURANTE LA REPRODUCCION ==
-  [ OK ] Sin clicks ni NaN en 7 cambios de modo paso max 0.0422
-  [ OK ] Hueco de silencio acotado por cambio 54.9 ms max
+  [ OK ] Sin clicks ni NaN en 7 cambios de modo paso max 0.0769
+  [ OK ] Hueco de silencio acotado por cambio 54.8 ms max
   [ OK ] Latencia reportada al host actualizada 331 smp en modo final MONITOR
   [ OK ] Cambios de modo sin asignaciones en audio 0
 
@@ -135,21 +135,29 @@
   [ OK ] OCTAVE -1: 220 Hz -> 110 Hz 109.2 Hz
   [ OK ] OCTAVE +1: 220 Hz -> 440 Hz 435.8 Hz
   [ OK ] HPF por capa (LEAD a 1 kHz): 100 Hz atenuado 40.0 dB
-  [ OK ] Envio de reverb por capa (100 % vs 0 %) cola -42.6 dB vs -200.0 dB
+  [ OK ] Envio de reverb por capa (100 % vs 0 %) cola -37.8 dB vs -200.0 dB
 
 == v3.0 STUDIO: MODOS DE RUTEO DE EFECTOS ==
-  [ OK ] SERIES: los ecos del delay se reverberan cola tras el eco -133.1 -> -71.7 dB
+  [ OK ] SERIES: los ecos del delay se reverberan cola tras el eco -128.3 -> -66.9 dB
   [ OK ] MID/SIDE: el centro de los retornos baja (la voz manda en el centro) 10.5 dB menos en el centro
-  [ OK ] SPLIT: graves (150 Hz) fuera de la reverb 9.2 dB menos de cola grave
+  [ OK ] SPLIT: graves (150 Hz) fuera de la reverb 9.1 dB menos de cola grave
+
+== v3.2 SHINE: DE-ESSER RELATIVO, EXCITER, VOICING DE PRESETS ==
+  [ OK ] De-esser relativo: no apaga la voz (vocales con aliento) 5-18 kHz -0.19 dB
+  [ OK ] De-esser relativo: reduce sibilantes -3.1 dB en 5-10 kHz
+  [ OK ] Exciter SHINE independiente del nivel -30 dB: +2.4 dB, -10 dB: +2.4 dB
+  [ OK ] Presets con aire (+1.5 dB o mas en 10-18 kHz) 40 presets
+  [ OK ] Presets con nivel calibrado (-0.5..+2 dB frente a la entrada) ok
+  [ OK ] Presets con saturacion audible (THD >= 0.4 %) ok
 
 == v3.0 STUDIO: SECUENCIADOR, TONE TILT, TECHO, LINK ==
-  [ OK ] GATE secuenciado a 1/16 (125 ms por paso) 186.5 dB entre paso abierto y cerrado
-  [ OK ] THROW secuenciado: ecos en los pasos activos (delay apagado) -200.0 -> -24.3 dB tras la frase
+  [ OK ] GATE secuenciado a 1/16 (125 ms por paso) 191.3 dB entre paso abierto y cerrado
+  [ OK ] THROW secuenciado: ecos en los pasos activos (delay apagado) -200.0 -> -19.5 dB tras la frase
   [ OK ] TONE TILT +6 dB (100 Hz vs 10 kHz) 100 Hz -2.9 dB, 10 kHz +3.0 dB
   [ OK ] OUTPUT / LIMIT: techo de -3 dBTP respetado (voz +18 dB) -3.15 dBTP
-  [ OK ] IN/OUT LINK: trim de entrada compensado en el master sin link +6.0 dB, con link -0.00 dB
-  [ OK ] Orden de la cadena (6 permutaciones) cambiado en reproduccion paso max 0.146
-  [ OK ] Orden de insercion aplicado (RAGE EDGE: EQ>COMP>COLOR vs COLOR>COMP>EQ) diferencia -22.3 dB respecto a la senal
+  [ OK ] IN/OUT LINK: trim de entrada compensado en el master sin link +6.0 dB, con link 0.00 dB
+  [ OK ] Orden de la cadena (6 permutaciones) cambiado en reproduccion paso max 0.328 (sin cambios 0.284)
+  [ OK ] Orden de insercion aplicado (RAGE EDGE: EQ>COMP>COLOR vs COLOR>COMP>EQ) diferencia -20.6 dB respecto a la senal
 
 == v3.0 STUDIO: MIGRACION DE SESIONES Y PRESETS v2.x ==
   [ OK ] Sesion v2.x: ADLIBS y LOW se trasladan a las capas v3 (ADLIBS, OCTAVE -1) OK
@@ -169,14 +177,14 @@
   [ OK ] Analisis de archivo (seno 1 kHz -23 dBFS): LUFS y true peak -22.99 LUFS, TP -23.00 dBTP
 
 == RENDIMIENTO (64 muestras @ 48 kHz = 1.33 ms por bloque) ==
-   1 instancia(s) MIX               : 6.1 % de tiempo real (un nucleo de este servidor)
-   4 instancia(s) MIX               : 24.7 % de tiempo real (un nucleo de este servidor)
-   8 instancia(s) MIX               : 49.4 % de tiempo real (un nucleo de este servidor)
-  16 instancia(s) MIX               : 99.6 % de tiempo real (un nucleo de este servidor)
-   1 instancia(s) MIX + Formant Keep: 6.1 % de tiempo real (un nucleo de este servidor)
-   4 instancia(s) MIX + Formant Keep: 24.6 % de tiempo real (un nucleo de este servidor)
-   8 instancia(s) MIX + Formant Keep: 49.3 % de tiempo real (un nucleo de este servidor)
-  16 instancia(s) MIX + Formant Keep: 99.6 % de tiempo real (un nucleo de este servidor)
+   1 instancia(s) MIX               : 6.4 % de tiempo real (un nucleo de este servidor)
+   4 instancia(s) MIX               : 25.6 % de tiempo real (un nucleo de este servidor)
+   8 instancia(s) MIX               : 51.4 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX               : 103.7 % de tiempo real (un nucleo de este servidor)
+   1 instancia(s) MIX + Formant Keep: 6.5 % de tiempo real (un nucleo de este servidor)
+   4 instancia(s) MIX + Formant Keep: 25.6 % de tiempo real (un nucleo de este servidor)
+   8 instancia(s) MIX + Formant Keep: 51.6 % de tiempo real (un nucleo de este servidor)
+  16 instancia(s) MIX + Formant Keep: 103.6 % de tiempo real (un nucleo de este servidor)
 
 == CAPTURAS UI ==
   -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_0.png
@@ -186,9 +194,9 @@
   -> D:\a\VoxDnaPro\VoxDnaPro\test-out\ui_4.png
 
 == v3.1 MOTION: COSTE DE LA INTERFAZ Y VIDEO DE MUESTRA ==
-  [INFO] Animaciones completas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 14.47 ms/frame (ventana completa 45.5 ms)
-  [INFO] Animaciones suaves: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 14.10 ms/frame (ventana completa 45.3 ms)
-  [INFO] Animaciones desactivadas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 13.79 ms/frame (ventana completa 44.5 ms)
+  [INFO] Animaciones completas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 16.52 ms/frame (ventana completa 50.6 ms)
+  [INFO] Animaciones suaves: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 16.11 ms/frame (ventana completa 50.2 ms)
+  [INFO] Animaciones desactivadas: coste de pintado por frame (Direct2D/WARP sin GPU) regiones animadas 15.00 ms/frame (ventana completa 48.8 ms)
   -> 240 frames en D:\a\VoxDnaPro\VoxDnaPro\test-out\frames
 
 TODOS LOS TESTS OK (0 fallos)

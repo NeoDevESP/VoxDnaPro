@@ -1,5 +1,5 @@
 Started validating: D:\a\VoxDnaPro\VoxDnaPro\build\VoxDnaPro_artefacts\Release\VST3\VOX DNA PRO.vst3
-Random seed: 0x218e7b
+Random seed: 0x46b1ca2
 Validation started
 Strictness level: 10
 -----------------------------------------------------------------
@@ -7,7 +7,7 @@ Starting tests in: pluginval / Scan for plugins located in: D:\a\VoxDnaPro\VoxDn
 Num plugins found: 1
 
 Testing plugin: VST3-VOX DNA PRO-f3e7d1f4-1d3cc93d
-VOX DNA: VOX DNA PRO v3.1.1
+VOX DNA: VOX DNA PRO v3.2.0
 Completed tests in pluginval / Scan for plugins located in: D:\a\VoxDnaPro\VoxDnaPro\build\VoxDnaPro_artefacts\Release\VST3\VOX DNA PRO.vst3
 -----------------------------------------------------------------
 Starting tests in: pluginval / Open plugin (cold)...
